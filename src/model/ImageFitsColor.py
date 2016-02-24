@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import Image #Heritage
+from Image import Image #Heritage
 import pyfits
 import numpy as np
 
@@ -18,7 +18,7 @@ def readFITS(path):
     return (hdu_list, image_data)
 
 
-class ImageFitsColor(Image.Image):
+class ImageFitsColor(Image):
     """docstring for ImageFitsColor"""
     def __init__(self, fitsPath_red, fitsPath_green, fitsPath_blue):
         """ Convert separate FITS images (RGB) to 3-color array (ndarray)

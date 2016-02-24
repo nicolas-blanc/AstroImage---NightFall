@@ -1,13 +1,13 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*- 
 
-import Image #Heritage
+from Image import Image #Heritage
 import rawpy #Python wrapper for the LibRaw library (raw image decoder)
 from rawpy import ColorSpace
 from rawpy import DemosaicAlgorithm
 
 
-class ImageRaw(Image.Image):
+class ImageRaw(Image):
     """docstring for ImageRaw"""
     def __init__(self, path):
         """ Convert RAW images to 3-color array (ndarray) """
@@ -24,8 +24,6 @@ class ImageRaw(Image.Image):
     def getFile(self):
     	""" Return the file of ImageRaw"""
         return self._file
-
-
 
 
 
