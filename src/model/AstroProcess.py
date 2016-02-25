@@ -2,9 +2,16 @@
 # -*- coding: utf-8 -*- 
 
 import numpy as np
+from math import sqrt
+
+
 
 
 # GENERAL METHODE ------------------------------------------------------------------------------------------------------------#
+
+# MEDIAN : the median combination allow to eliminates pixels deviants. It is the one that we shall usually use to combine Flat field (remove completely any tracks of artéfacts)
+# so this combination eliminates space rays, tracks of satellites, travel of asteroids, etc. 
+# but we obtain a MASTERDARK with a S/N of the order of 25 % a 30 %
 
 def median(ndarray_list):
 	""" Create a median array from all array, i.e calcul the median for each pixel.
@@ -29,6 +36,48 @@ def median(ndarray_list):
                    	t[i][j][k] = np.median(liste)
         return t
 
+
+# SIGMA-CLIP (SIGMA REJECT) : Better than the median. It is the one that we shall usually use to combine the LIGHT images, DARK, FLAT FIELD and DARK FOR FLAT FIELD.
+# 1) From the set of corresponding pixel values from each source image, compute the mean (average) and standard deviation of these values.
+# 2) Compute a new mean, omitting pixels from the above set that fall further away than threshold standard deviations from the mean. Use this new mean as the output value for this pixel location.
+# 3) Repeat steps 1-2 for every pixel in the final image.
+
+def sigmaReject(ndarray_list):
+	""" """
+    if len(ndarray_list) == 1:
+    	# Shouldn't happen ...
+        return ndarray_list
+    else:
+    	# Initialise the sigmaReject array at dimensions of frame
+        t = np.copy(frame_list[0])
+        # Fills the sigmaReject array
+        h,l,r = ndarray_list[0].shape
+        lenght = len(ndarray_list)
+		for i in range(h):
+			for j in range(l):
+				for k in range(r):
+					# from the set of corresponding pixel values from each source image, compute the average
+					liste = []
+					for frame in range(lenght):
+						liste.append(ndarray_list[frame][i][j][k])
+                   	mean = np.mean(liste)
+                   	# Find standard deviation of these values
+                   	variance = 0
+                   	for frame in range(lenght):
+                   		variance = variance + (ndarray_list[frame][i][j][k]-mean)**2
+                   	variance = variance/lenght
+                   	ecart_type = sqrt(variance)
+                   	# Compute a new mean, omitting pixels from the above set that fall further away than threshold standard deviations from the mean.
+					sigmaClip = []
+					for frame in range(lenght):
+						if (ndarray_list[frame][i][j][k] <= ecart_type):
+							sigmaClip.append(ndarray_list[frame][i][j][k])
+                   	t[i][j][k] = np.mean(sigmaClip)
+        return t
+
+
+
+# The normalization consists in putting pixels in the same intensity before being combined
 
 def normalize(ndarray_list):
     """ Normalize each ndarray and scale all
@@ -55,7 +104,7 @@ def normalize(ndarray_list):
 
 def ProcessMasterDark(ndarray_list) :
 	# 1) Create a median array from all of them, entry-by-entry.
-	dark = median(ndarray_list)
+	dark = sigmaReject(ndarray_list)
 	return dark
 
 
@@ -84,10 +133,15 @@ def ProcessMasterFlat(ndarray_list, ndarray_masterDark) :
 # We will use master flat and dark field to clean up each light frame, which contains data about the night sky : (Light-Dark)/Flat
 
 def Calibration(ndarray_list, ndarray_masterDark, ndarray_masterFlat):
-	lights = list(ndarray_list)
-	length = len(lights)
+	lights_list = list(ndarray_list)
+	length = len(lights_list)
+	# Use masterflat and masterdark to clean up each light frame
 	for i in range(lenght):
-		lights[i] = np.true_divide(np.subtract(lights[i], ndarray_masterDark), ndarray_masterFlat)
+		lights_list[i] = np.true_divide(np.subtract(lights_list[i], ndarray_masterDark), ndarray_masterFlat)
+	# Normalize each light frame
+	lights_list = normalize(lights_list)
+	return lights_list
+
 
 
 
