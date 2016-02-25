@@ -28,6 +28,28 @@ dtype_limitValues = {np.uint8: (0, 255),
 
 # DENOISING -----------------------------------------------------------------------------------------------------------------#
 
+def medianFilter(ndarray):
+	""" Median Filter : Easy and effective method to remove a part of the noise on an image  
+	"""
+	medfilter = np.zeros((9))
+	h,l,r=ndarray.shape
+	t=np.copy(ndarray)
+	for i in range(1,h-1):
+	    for j in range(1,l-1):
+	    	for k in range(r):
+		       	medfilter[0] = t[i-1][j-1][k]
+		       	medfilter[1] = t[i-1][j][k]
+		       	medfilter[2] = t[i-1][j+1][k]
+		       	medfilter[3] = t[i][j-1][k]
+		       	medfilter[4] = t[i][j][k]
+		       	medfilter[5] = t[i][j+1][k]
+		       	medfilter[6] = t[i+1][j-1][k]
+		       	medfilter[7] = t[i+1][j][k]
+		       	medfilter[8] = t[i+1][j+1][k]
+		       	median = np.median(medfilter, axis=None)
+		       	t[i][j][k] = median
+	return t	          
+
 
 
 # CONTRAST ------------------------------------------------------------------------------------------------------------------#
@@ -121,6 +143,12 @@ def saturationCorrect(ndarray,gain=0.5):
 	return t
 
 
+# WHITE BALANCE --------------------------------------------------------------------------------------------------------------#
+
+def EqualizeHistogram(ndarray):
+	pass
+
+
 
 # ASTRO-TREATMENT ------------------------------------------------------------------------------------------------------------#
 
@@ -143,7 +171,9 @@ def deletionGreenDominant(ndarray, loss=10):
 	return t
 
 
+
 def deletionLightPollution(ndarray):
+	# EqualizeHistogram ????
 	pass
 
 
@@ -164,17 +194,19 @@ if __name__ == '__main__':
     path = '../../Pictures_test/'
     raw = ImageRaw(path + 'DSC_6027.NEF')
     ndarray = raw.getndarray()
-    imageio.imsave('../../Pictures_test/testImageNEF.tiff', ndarray)
-    ndarray1 = logCorrect(ndarray)
-    imageio.imsave('../../Pictures_test/testlogCorrect.tiff', ndarray1)
-    ndarray2 = gammaCorrect(ndarray)
-    imageio.imsave('../../Pictures_test/testgammaCorrect.tiff', ndarray2)
-    ndarray3 = luminosityCorrect(ndarray)
-    imageio.imsave('../../Pictures_test/testluminosityCorrect.tiff', ndarray3)
-    ndarray4 = saturationCorrect(ndarray)
-    imageio.imsave('../../Pictures_test/testsaturationCorrect.tiff', ndarray4)
-    ndarray5 = deletionGreenDominant(ndarray)
-    imageio.imsave('../../Pictures_test/testdeletionGreenDominant.tiff', ndarray5)
+    #imageio.imsave('../../Pictures_test/testImageNEF.tiff', ndarray)
+    #ndarray1 = logCorrect(ndarray)
+    #imageio.imsave('../../Pictures_test/testlogCorrect.tiff', ndarray1)
+    #ndarray2 = gammaCorrect(ndarray)
+    #imageio.imsave('../../Pictures_test/testgammaCorrect.tiff', ndarray2)
+    #ndarray3 = luminosityCorrect(ndarray)
+    #imageio.imsave('../../Pictures_test/testluminosityCorrect.tiff', ndarray3)
+    #ndarray4 = saturationCorrect(ndarray)
+    #imageio.imsave('../../Pictures_test/testsaturationCorrect.tiff', ndarray4)
+    #ndarray5 = deletionGreenDominant(ndarray)
+    #imageio.imsave('../../Pictures_test/testdeletionGreenDominant.tiff', ndarray5)
+    ndarray6 = medianFilter(ndarray)
+    imageio.imsave('../../Pictures_test/testmedianFilter.tiff', ndarray6)
 
 #------------------------------#
 
