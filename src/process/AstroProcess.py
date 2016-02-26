@@ -43,7 +43,10 @@ def median(ndarray_list):
 # 3) Repeat steps 1-2 for every pixel in the final image.
 
 def sigmaReject(ndarray_list):
-	""" """
+	""" Create a sigma reject array from all array, i.e calcul the sigma reject for each pixel.
+		> More the number of ndarray is, more the sigma reject will be precise !
+		> All ndarray must have same dimensions !
+	"""
     if len(ndarray_list) == 1:
     	# Shouldn't happen ...
         return ndarray_list
@@ -102,7 +105,9 @@ def normalize(ndarray_list):
 
 # Dark fields capture the noise inherent to the CCD array, which we would like to eliminate so the sensor doesn’t contaminate the light we’re collecting from the night sky
 
-def ProcessMasterDark(ndarray_list) :
+def processMasterDark(ndarray_list) :
+	""" The MASTERDARK image will serve to remove the thermal noise and random noise on our LIGHT image
+	"""
 	# 1) Create a median array from all of them, entry-by-entry.
 	dark = sigmaReject(ndarray_list)
 	return dark
@@ -113,7 +118,9 @@ def ProcessMasterDark(ndarray_list) :
 
 # Flats are images portraying the sensitivity of individual pixels in the frame, which is illuminated uniformly
 
-def ProcessMasterFlat(ndarray_list, ndarray_masterDark) :
+def processMasterFlat(ndarray_list, ndarray_masterDark) :
+	""" The MASTERFLAT image will serve to remove all track of dusts, gradient, vignetting on our LIGHT image
+	"""
 	# 1) Subtract the master dark frame
 	flat = list(ndarray_list)
 	lenght = len(flat)
@@ -127,12 +134,20 @@ def ProcessMasterFlat(ndarray_list, ndarray_masterDark) :
 	return flat
 
 
+# MASTER BIAS ---------------------------------------------------------------------------------------------------------------#
+
+# If you take your series of images DARK with same parameters (the same exposure time, same binning, same temperature) as the LIGHT images and for your images of FLAT FIELD, you will not need to set of images of BIAS.
+
+# CAREFUL : OVERALL BY AVERAGE only !
+
 
 # LIGHT ----------------------------------------------------------------------------------------------------------------------#
 
 # We will use master flat and dark field to clean up each light frame, which contains data about the night sky : (Light-Dark)/Flat
 
-def Calibration(ndarray_list, ndarray_masterDark, ndarray_masterFlat):
+def calibration(ndarray_list, ndarray_masterDark, ndarray_masterFlat):
+	""" The final result will be a perfectly corrected LIGHT image
+	"""
 	lights_list = list(ndarray_list)
 	length = len(lights_list)
 	# Use masterflat and masterdark to clean up each light frame
@@ -143,6 +158,9 @@ def Calibration(ndarray_list, ndarray_masterDark, ndarray_masterFlat):
 	return lights_list
 
 
+def registration(ndarray_list):
+	""" To overlap LIGHT image (after the calibration) """
+	pass
 
 
 
