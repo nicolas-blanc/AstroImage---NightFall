@@ -4,10 +4,14 @@
 import numpy as np
 from math import sqrt
 
-
+# INFO : 
+# http://astro.dialou.fr/techniques/astrophotographie/capture-des-images-de-calibration/
+# http://www.astrosurf.com/d_bergeron/astronomie/Bibliotheque/Traitement%20image/Pretraitement%20des%20images/traitement%20image.htm#Images%20DARK
 
 
 # GENERAL METHODE ------------------------------------------------------------------------------------------------------------#
+
+
 
 # MEDIAN : the median combination allow to eliminates pixels deviants. It is the one that we shall usually use to combine Flat field (remove completely any tracks of artéfacts)
 # so this combination eliminates space rays, tracks of satellites, travel of asteroids, etc. 
@@ -80,6 +84,33 @@ def sigmaReject(ndarray_list):
 
 
 
+# AVERAGE : only for BIAS !
+
+def average(ndarray_list):
+	""" Create a average array from all array, i.e calcul the average for each pixel.
+		> More the number of ndarray is, more the average will be precise !
+		> All ndarray must have same dimensions !
+	"""
+    if len(ndarray_list) == 1:
+    	# Shouldn't happen ...
+        return ndarray_list
+    else:
+    	# Initialise the median array at dimensions of frame
+        t = np.copy(frame_list[0])
+        # Fills the median array
+        h,l,r = ndarray_list[0].shape
+        lenght = len(ndarray_list)
+		for i in range(h):
+			for j in range(l):
+				for k in range(r):
+					liste = []
+					for frame in range(lenght):
+						liste.append(ndarray_list[frame][i][j][k])
+                   	t[i][j][k] = np.average(liste)
+        return t
+
+
+
 # The normalization consists in putting pixels in the same intensity before being combined
 
 def normalize(ndarray_list):
@@ -107,11 +138,40 @@ def normalize(ndarray_list):
 
 def processMasterDark(ndarray_list) :
 	""" The MASTERDARK image will serve to remove the thermal noise and random noise on our LIGHT image
+		> without MASTERBIAS
 	"""
-	# 1) Create a median array from all of them, entry-by-entry.
-	dark = sigmaReject(ndarray_list)
-	return dark
+	# 1) Create a sigma reject array from all of them, entry-by-entry.
+	masterdark = sigmaReject(ndarray_list)
+	return masterdark
 
+
+def processMasterDarkWithBias(ndarray_list, ndarray_masterBias) :
+	""" The MASTERDARK image will serve to remove the thermal noise and random noise on our LIGHT image
+		> with MASTERBIAS
+	"""
+	# 1) Subtract the master bias frame
+	darks = list(ndarray_list)
+	lenght = len(darks)
+	h,l,r = darks[0].shape
+    for i in range(lenght):
+    	darks[i] = np.subtract(darks[i], ndarray_masterBias)
+	# 2) Create a sigma reject array from all of them, entry-by-entry.
+	masterdark = sigmaReject(darks)
+	return masterdark
+
+
+def processMasterDarkFlat(ndarray_list, ndarray_masterBias) :
+	""" The MASTER DARK FLAT image will serve to calcul the MASTER FLAT FIELD WITH BIAS
+	"""
+	# 1) Subtract the master bias frame
+	darkflats = list(ndarray_list)
+	lenght = len(darkflats)
+	h,l,r = darkflats[0].shape
+    for i in range(lenght):
+    	darkflats[i] = np.subtract(darkflats[i], ndarray_masterBias)
+	# 2) Create a sigma reject array from all of them, entry-by-entry.
+	masterdarkflat = sigmaReject(darkflats)
+	return masterdarkflat
 
 
 # MASTER FLAT ---------------------------------------------------------------------------------------------------------------#
@@ -120,25 +180,50 @@ def processMasterDark(ndarray_list) :
 
 def processMasterFlat(ndarray_list, ndarray_masterDark) :
 	""" The MASTERFLAT image will serve to remove all track of dusts, gradient, vignetting on our LIGHT image
+		> Without MASTERBIAS
 	"""
 	# 1) Subtract the master dark frame
-	flat = list(ndarray_list)
-	lenght = len(flat)
-	h,l,r = t[0].shape
+	flats = list(ndarray_list)
+	lenght = len(flats)
+	h,l,r = flats[0].shape
     for i in range(lenght):
-    	flat[i] = np.subtract(flat[i], ndarray_masterDark)
+    	flats[i] = np.subtract(flats[i], ndarray_masterDark)
 	# 2) Normalize all frame
-	flat = normalize(t)
+	flats = normalize(flats)
 	# 3) Create a median array from all of them, entry-by-entry.
-	falt = median(flat)
-	return flat
+	masterflat = median(flats)
+	return masterflat
+
+
+def processMasterFlatWithBias(ndarray_list, ndarray_masterDarkFlat, ndarray_masterBias) :
+	""" The MASTERFLAT image will serve to remove all track of dusts, gradient, vignetting on our LIGHT image
+		> With MASTERBIAS & MasterDarkFlat
+	"""
+	# 1) Subtract the MasterBias and the MasterDarkFlat
+	flats = list(ndarray_list)
+	lenght = len(flats)
+	h,l,r = flats[0].shape
+    for i in range(lenght):
+    	flats[i] = np.subtract(flats[i], ndarray_masterBias)
+    	flats[i] = np.subtract(flats[i], ndarray_masterDarkFlat)
+	# 2) Normalize all frame
+	flats = normalize(flats)
+	# 3) Create a median array from all of them, entry-by-entry.
+	masterflat = median(flats)
+	return masterflat
 
 
 # MASTER BIAS ---------------------------------------------------------------------------------------------------------------#
 
 # If you take your series of images DARK with same parameters (the same exposure time, same binning, same temperature) as the LIGHT images and for your images of FLAT FIELD, you will not need to set of images of BIAS.
-
 # CAREFUL : OVERALL BY AVERAGE only !
+def processMasterBias(ndarray_list) :
+	""" The MASTERBIAS image will serve to remove the initial exposure level of pixels in our LIGHT
+		> If you take your series of images DARK with same parameters (the same exposure time, same binning, same temperature) as the LIGHT images and for your images of FLAT FIELD, you will not need to set of images of BIAS.
+	"""
+	# 1) Create an average array from all of them, entry-by-entry.
+	masterbias = average(ndarray_list)
+	return masterbias
 
 
 # LIGHT ----------------------------------------------------------------------------------------------------------------------#
@@ -147,11 +232,27 @@ def processMasterFlat(ndarray_list, ndarray_masterDark) :
 
 def calibration(ndarray_list, ndarray_masterDark, ndarray_masterFlat):
 	""" The final result will be a perfectly corrected LIGHT image
+		> without BIAS
 	"""
 	lights_list = list(ndarray_list)
 	length = len(lights_list)
 	# Use masterflat and masterdark to clean up each light frame
 	for i in range(lenght):
+		lights_list[i] = np.true_divide(np.subtract(lights_list[i], ndarray_masterDark), ndarray_masterFlat)
+	# Normalize each light frame
+	lights_list = normalize(lights_list)
+	return lights_list
+
+
+def calibrationWithBias(ndarray_list, ndarray_masterDark, ndarray_masterFlat, ndarray_masterBias):
+	""" The final result will be a perfectly corrected LIGHT image
+		> with BIAS
+	"""
+	lights_list = list(ndarray_list)
+	length = len(lights_list)
+	# Use masterflat, masterdark and masterbias to clean up each light frame
+	for i in range(lenght):
+		lights_list[i] = np.subtract(lights_list[i], ndarray_masterBias)
 		lights_list[i] = np.true_divide(np.subtract(lights_list[i], ndarray_masterDark), ndarray_masterFlat)
 	# Normalize each light frame
 	lights_list = normalize(lights_list)
