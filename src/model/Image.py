@@ -19,8 +19,9 @@ class Image(object):
     """docstring for Image"""
     def __init__(self, path):
         super(Image, self).__init__()
-        print('path : ' + path)
-        self.path = path
+        self._path = path
+        print('path : ' + self._path)
+
 
 
     # To get back the size of the image
@@ -36,7 +37,7 @@ class ImageRaw(Image):
     def __init__(self, path):
         super(ImageRaw, self).__init__(path)
         # Load a RAW file
-        self._file = rawpy.imread(_path)
+        self._file = rawpy.imread(self._path)
         # Erreur sur cette ligne, me dit que size n'existe pas
     	# self.raw_height, self.raw_width, self.height, self.width, self.top_margin, self.left_margin, self.iheight, self.iwidth, self.pixel_aspect, self.flip = self.file.size
 
@@ -64,10 +65,12 @@ class ImageFits(Image):
 
 
     # Opening FITS files and loading the image data
-    def readFITS(self):
-    	self._hduList = pyfits.open(self._path, uint=True, do_not_scale_image_data=False) # returns an object called an HDUList which is a list-like collection of HDU objects.
-    	self._imageData = self._hduList[0].data # hdulist[0] is the primary HDU, hdulist[1] is the first extension HDU, etc. The data attribute of the HDU object will return a numpy ndarray object.
-    	self._hduList.close() # the headers will still be accessible after the HDUList is closed
+    def readFITS(self, path):
+        print('path : ' + path)
+    	hdu_list = pyfits.open(path, uint=True, do_not_scale_image_data=False) # returns an object called an HDUList which is a list-like collection of HDU objects.
+    	image_data = hdu_list[0].data # hdulist[0] is the primary HDU, hdulist[1] is the first extension HDU, etc. The data attribute of the HDU object will return a numpy ndarray object.
+    	hdu_list.close() # the headers will still be accessible after the HDUList is closed
+    	return (hdu_list, image_data)
 
     #hdu,imageDataRed, imageDataGreen, imageDataBlue = readFITS('M13_blue_0001.fits')
     #print(hdu.info())
@@ -81,9 +84,9 @@ class ImageFits(Image):
         fitsPathGreen = self._path + "green.fits"
         fitsPathBlue = self._path + "blue.fits"
 
-    	hduListRed, imageDataRed = readFITS(fitsPathRed)
-    	hduListGreen, imageDataGreen = readFITS(fitsPathGreen)
-    	hduListBlue, imageDataBlue = readFITS(fitsPathBlue)
+    	hduListRed, imageDataRed = self.readFITS(fitsPathRed)
+    	hduListGreen, imageDataGreen = self.readFITS(fitsPathGreen)
+    	hduListBlue, imageDataBlue = self.readFITS(fitsPathBlue)
     	height,width = imageDataRed.shape
     	dataType = imageDataRed.dtype.name
     	#print('')
@@ -112,25 +115,41 @@ class ImageFits(Image):
     	red.data = npr
     	#print("DATA LOAD")
     	#print(red.data)
-    	red.writeto(fitsName+'_red.fits')
+        try:
+        	# red.writeto(self._path + 'FITS/' + fitsName + '_red.fits')
+        	red.writeto(self._path + 'FITS/red.fits')
+        except IOError:
+            print('Le fichier ' + fitsName + '_red.fits existe déjà dans le dossier ' + self._path + 'FITS/')
 
     	green = pyfits.PrimaryHDU()
     	green.header['LATOBS'] = LATOBS
     	green.header['LONGOBS'] = LONGOBS
     	green.data = npg
-    	green.writeto(fitsName+'_green.fits')
+        try:
+        	# green.writeto(self._path + 'FITS/' + fitsName + '_green.fits')
+        	green.writeto(self._path + 'FITS/green.fits')
+        except IOError:
+            print('Le fichier ' + fitsName + '_green.fits existe déjà dans le dossier ' + self._path + 'FITS/')
+
 
     	blue = pyfits.PrimaryHDU()
     	blue.header['LATOBS'] = LATOBS
     	blue.header['LONGOBS'] = LONGOBS
     	blue.data = npb
-    	blue.writeto(fitsName+'_blue.fits')
+        try:
+            # blue.writeto(self._path + 'FITS/' + fitsName + '_blue.fits')
+            blue.writeto(self._path + 'FITS/blue.fits')
+        except IOError:
+            print('Le fichier ' + fitsName + '_blue.fits existe déjà dans le dossier ' + self._path + 'FITS/')
+
 
     def getRGBArray(self):
+        # return np.asarray(self._rgbArray)
         return self._rgbArray
 
     def getHduListImageData(self, arg):
         return (self._hduList, self._imageData)
+
 
 
 
@@ -148,10 +167,10 @@ if __name__ == '__main__':
     path = '../../Pictures_test/'
     iR1 = ImageRaw(path + 'DSC_0599.NEF')
     iR1.debayeurization()
-    imageio.imsave('../../Pictures_test/testFITS.tiff', iR1.getImageDebayeurization())
+    imageio.imsave(path + 'testFITS.tiff', iR1.getImageDebayeurization())
 
-    # iF1 = ImageFits(path)
-    # iF2 = ImageFits(path + 'FITS/')
-    # # iF1.convertRGBToFITS(iR1.getImageDebayeurization(),'test')
-    # iF2.convertFITSToRGB()
-    # imageio.imsave('testFITS.tiff', iF2.getRGBArray)
+    iF1 = ImageFits(path)
+    iF2 = ImageFits(path + 'FITS/')
+    iF1.convertRGBToFITS(iR1.getImageDebayeurization(),'test')
+    iF2.convertFITSToRGB()
+    imageio.imsave(path + 'testFITS2.tiff', iF2.getRGBArray())
