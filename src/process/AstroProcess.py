@@ -22,22 +22,22 @@ def median(ndarray_list):
 		> More the number of ndarray is, more the median will be precise !
 		> All ndarray must have same dimensions !
 	"""
-    if len(ndarray_list) == 1:
+	if len(ndarray_list) == 1:
     	# Shouldn't happen ...
-        return ndarray_list
-    else:
+		return ndarray_list
+   	else:
     	# Initialise the median array at dimensions of frame
-        t = np.copy(frame_list[0])
+		t = np.copy(ndarray_list[0])
         # Fills the median array
-        h,l,r = ndarray_list[0].shape
-        lenght = len(ndarray_list)
-		for i in range(h):
-			for j in range(l):
-				for k in range(r):
-					liste = []
-					for frame in range(lenght):
-						liste.append(ndarray_list[frame][i][j][k])
-                   	t[i][j][k] = np.median(liste)
+       	h,l,r = t.shape
+       	lenght = len(ndarray_list)
+       	for i in range(0,h-1):
+			for j in range(0,l-1):
+				for k in range(0,r-1):
+					liste = np.zeros((lenght))
+					for frame in range(0,lenght-1):
+						liste[frame] = ndarray_list[frame][i][j][k]
+       	           	t[i][j][k] = np.median(liste)
         return t
 
 
@@ -51,35 +51,36 @@ def sigmaReject(ndarray_list):
 		> More the number of ndarray is, more the sigma reject will be precise !
 		> All ndarray must have same dimensions !
 	"""
-    if len(ndarray_list) == 1:
+	if len(ndarray_list) == 1:
     	# Shouldn't happen ...
-        return ndarray_list
-    else:
+		return ndarray_list
+	else:
     	# Initialise the sigmaReject array at dimensions of frame
-        t = np.copy(frame_list[0])
+		t = np.copy(ndarray_list[0])
         # Fills the sigmaReject array
-        h,l,r = ndarray_list[0].shape
-        lenght = len(ndarray_list)
-		for i in range(h):
-			for j in range(l):
-				for k in range(r):
+		h,l,r = ndarray_list[0].shape
+		lenght = len(ndarray_list)
+		for i in range(0,h-1):
+			for j in range(0,l-1):
+				for k in range(0,r-1):
 					# from the set of corresponding pixel values from each source image, compute the average
 					liste = []
-					for frame in range(lenght):
+					for frame in range(0,lenght-1):
 						liste.append(ndarray_list[frame][i][j][k])
                    	mean = np.mean(liste)
                    	# Find standard deviation of these values
                    	variance = 0
-                   	for frame in range(lenght):
+                   	for frame in range(0,lenght-1):
                    		variance = variance + (ndarray_list[frame][i][j][k]-mean)**2
                    	variance = variance/lenght
                    	ecart_type = sqrt(variance)
                    	# Compute a new mean, omitting pixels from the above set that fall further away than threshold standard deviations from the mean.
-					sigmaClip = []
-					for frame in range(lenght):
-						if (ndarray_list[frame][i][j][k] <= ecart_type):
-							sigmaClip.append(ndarray_list[frame][i][j][k])
-                   	t[i][j][k] = np.mean(sigmaClip)
+                   	sigmaClip = np.zeros((lenght))
+                   	for frame in range(0,lenght-1):
+                   		if (ndarray_list[frame][i][j][k] <= ecart_type):
+                   			sigmaClip[frame] = ndarray_list[frame][i][j][k]
+                   	mean = np.mean(sigmaClip)
+                   	t[i][j][k] = mean
         return t
 
 
@@ -91,21 +92,21 @@ def average(ndarray_list):
 		> More the number of ndarray is, more the average will be precise !
 		> All ndarray must have same dimensions !
 	"""
-    if len(ndarray_list) == 1:
+	if len(ndarray_list) == 1:
     	# Shouldn't happen ...
-        return ndarray_list
-    else:
+		return ndarray_list
+	else:
     	# Initialise the median array at dimensions of frame
-        t = np.copy(frame_list[0])
+		t = np.copy(ndarray_list[0])
         # Fills the median array
-        h,l,r = ndarray_list[0].shape
-        lenght = len(ndarray_list)
-		for i in range(h):
-			for j in range(l):
-				for k in range(r):
-					liste = []
-					for frame in range(lenght):
-						liste.append(ndarray_list[frame][i][j][k])
+		h,l,r = t.shape
+		lenght = len(ndarray_list)
+		for i in range(0,h-1):
+			for j in range(0,l-1):
+				for k in range(0,r-1):
+					liste = np.zeros((lenght))
+					for frame in range(0,lenght-1):
+						liste[frame] = ndarray_list[frame][i][j][k]
                    	t[i][j][k] = np.average(liste)
         return t
 
@@ -153,8 +154,8 @@ def processMasterDarkWithBias(ndarray_list, ndarray_masterBias) :
 	darks = list(ndarray_list)
 	lenght = len(darks)
 	h,l,r = darks[0].shape
-    for i in range(lenght):
-    	darks[i] = np.subtract(darks[i], ndarray_masterBias)
+	for i in range(lenght):
+		darks[i] = np.subtract(darks[i], ndarray_masterBias)
 	# 2) Create a sigma reject array from all of them, entry-by-entry.
 	masterdark = sigmaReject(darks)
 	return masterdark
@@ -167,8 +168,8 @@ def processMasterDarkFlat(ndarray_list, ndarray_masterBias) :
 	darkflats = list(ndarray_list)
 	lenght = len(darkflats)
 	h,l,r = darkflats[0].shape
-    for i in range(lenght):
-    	darkflats[i] = np.subtract(darkflats[i], ndarray_masterBias)
+	for i in range(lenght):
+		darkflats[i] = np.subtract(darkflats[i], ndarray_masterBias)
 	# 2) Create a sigma reject array from all of them, entry-by-entry.
 	masterdarkflat = sigmaReject(darkflats)
 	return masterdarkflat
@@ -186,8 +187,8 @@ def processMasterFlat(ndarray_list, ndarray_masterDark) :
 	flats = list(ndarray_list)
 	lenght = len(flats)
 	h,l,r = flats[0].shape
-    for i in range(lenght):
-    	flats[i] = np.subtract(flats[i], ndarray_masterDark)
+	for i in range(lenght):
+		flats[i] = np.subtract(flats[i], ndarray_masterDark)
 	# 2) Normalize all frame
 	flats = normalize(flats)
 	# 3) Create a median array from all of them, entry-by-entry.
@@ -203,9 +204,9 @@ def processMasterFlatWithBias(ndarray_list, ndarray_masterDarkFlat, ndarray_mast
 	flats = list(ndarray_list)
 	lenght = len(flats)
 	h,l,r = flats[0].shape
-    for i in range(lenght):
-    	flats[i] = np.subtract(flats[i], ndarray_masterBias)
-    	flats[i] = np.subtract(flats[i], ndarray_masterDarkFlat)
+	for i in range(lenght):
+		flats[i] = np.subtract(flats[i], ndarray_masterBias)
+		flats[i] = np.subtract(flats[i], ndarray_masterDarkFlat)
 	# 2) Normalize all frame
 	flats = normalize(flats)
 	# 3) Create a median array from all of them, entry-by-entry.
@@ -264,6 +265,68 @@ def registration(ndarray_list):
 	pass
 
 
+
+#---------- TESTS -------------#
+
+if __name__ == '__main__':
+	import imageio
+	from ImageRaw import ImageRaw
+
+# MasterDark :
+#	path = '../../Pictures_test/darks/'
+#	d1 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2')
+#	dark1 = d1.getndarray()
+#	d3 = ImageRaw(path + 'D_0015_IC405_ISO800_300s__13C.CR2')
+#	dark3 = d3.getndarray()
+#	d4 = ImageRaw(path + 'D_0014_IC405_ISO800_300s__13C.CR2')
+#	dark4 = d4.getndarray()
+#	d5 = ImageRaw(path + 'D_0013_IC405_ISO800_300s__13C.CR2')
+#	dark5 = d5.getndarray()
+#	d7 = ImageRaw(path + 'D_0012_IC405_ISO800_300s__13C.CR2')
+#	dark7 = d7.getndarray()
+#	d8 = ImageRaw(path + 'D_0011_IC405_ISO800_300s__13C.CR2')
+#	dark8 = d8.getndarray()
+#	d9 = ImageRaw(path + 'D_0010_IC405_ISO800_300s__13C.CR2')
+#	dark9 = d9.getndarray()
+#	d11 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2')
+#	dark11 = d11.getndarray()
+#	liste_dark = [dark1,dark3,dark4,dark5,dark7,dark8,dark9,dark11]
+#	result_dark = processMasterDark(liste)
+#	imageio.imsave('../../Pictures_test/testMasterDark.tiff', result_dark)
+
+# MasterFlat :
+	#from PIL import Image
+	from skimage import data
+	dark = data.imread('../../Pictures_test/testMasterDark.tiff')
+	#dark = np.array(darkimg)
+	path = '../../Pictures_test/flats/'
+	f1 = ImageRaw(path + 'IMG_3059.CR2')
+	flat1 = f1.getndarray()
+	f2 = ImageRaw(path + 'IMG_3059.CR2')
+	flat2 = f2.getndarray()
+	f3 = ImageRaw(path + 'IMG_3060.CR2')
+	flat3 = f3.getndarray()
+	f4 = ImageRaw(path + 'IMG_3061.CR2')
+	flat4 = f4.getndarray()
+	f5 = ImageRaw(path + 'IMG_3062.CR2')
+	flat5 = f5.getndarray()
+	f6 = ImageRaw(path + 'IMG_3063.CR2')
+	flat6 = f6.getndarray()
+	f7 = ImageRaw(path + 'IMG_3064.CR2')
+	flat7 = f7.getndarray()
+	f8 = ImageRaw(path + 'IMG_3065.CR2')
+	flat8 = f8.getndarray()
+	f9 = ImageRaw(path + 'IMG_3066.CR2')
+	flat9 = f9.getndarray()
+	f10 = ImageRaw(path + 'IMG_3067.CR2')
+	flat10 = f10.getndarray()
+	f11 = ImageRaw(path + 'IMG_3068.CR2')
+	flat11 = f11.getndarray()
+	liste_flat = [flat1,flat2,flat3,flat4,flat5,flat6,flat7,flat8,flat9,flat10,flat11]
+	result_flat = processMasterFlat(liste_flat,dark)
+	imageio.imsave('../../Pictures_test/testMasterFlat.tiff', result)
+
+#------------------------------#
 
 
 
