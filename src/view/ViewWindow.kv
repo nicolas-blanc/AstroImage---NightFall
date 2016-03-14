@@ -1,0 +1,126 @@
+#:kivy 1.9.1
+
+<ViewExplorer>
+    width: 300
+    BoxLayout:
+        width: 300
+        size_hint: (None,1)
+        TabbedPanel:
+            tab_pos: "top_right"
+            default_tab_text: "List View"
+            default_tab_content: list_view_tab
+
+            TabbedPanelHeader:
+                text: 'Icon View'
+                content: icon_view_tab
+
+            FileChooserListView:
+                id: list_view_tab
+
+            FileChooserIconView:
+                id: icon_view_tab
+                show_hidden: True
+
+
+<ViewImage>
+    BoxLayout:
+        orientation: 'vertical'
+        position: 'center'
+        Image:
+            source: "./backgroundDefault.jpg"
+
+<ViewMenu>
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 20
+        spacing: 10
+
+        Button:
+            text: "File"
+        Button:
+            text: "Edit"
+        Button:
+            text: "Help"
+
+
+<ViewProcess>
+    BoxLayout:
+        orientation: 'vertical'
+
+        Slider:
+            id: test
+            min: 0
+            max: 10
+            value: 5
+        Label:
+            text: 'Slider text'
+
+        Switch
+            active: True
+        Label:
+            text: "Param 1"
+
+        CheckBox:
+        Label:
+            text: "Optimize render"
+
+        CheckBox:
+            active: True
+        Label:
+            text: "View pre-render"
+
+        CheckBox:
+            group: "money"
+        Label:
+            text: "Coralie is the best girl of the world"
+
+        CheckBox:
+            group: "money"
+            active: True
+        Label:
+            text: "Coralie is the most epic girl of the world"
+
+<ViewRender>
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 50
+        ProgressBar:
+            id: renderBar
+            value: 25
+            max: 100
+
+<ViewShortcut>
+    width: 50
+    size_hint: (None,None)
+    GridLayout:
+        cols: 1
+        width: 50
+        Button:
+            text: "Short1"
+        Button:
+            text: "Short2"
+        Button:
+            text: "Short3"
+        Button:
+            text: "Short4"
+
+<ViewWindow>
+    FloatLayout:
+        Button:
+            text: str(Shortcut.pos)
+            pos: 0,root.height-self.height
+            size_hint: (None,None)
+
+        ViewShortcut:
+            id: Shortcut
+            pos: 0,root.height
+
+        ViewImage:
+            id: Image
+            pos: 50,0
+            size_hint: ((root.width-(float(Explorer.width)+float(Shortcut.width)))/root.width,1)
+
+        ViewExplorer:
+            id: Explorer
+            pos: root.width-300,0
+            size_hint_x: None
