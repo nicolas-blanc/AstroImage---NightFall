@@ -25,6 +25,12 @@ dtype_limitValues = {np.uint8: (0, 255),
 		           np.int64: (-9223372036854775808, 9223372036854775807)}
 
 
+def previsualisation(ndarray):
+	""" To see the previsualisation of a treatment """
+	pass
+
+
+	
 
 # DENOISING -----------------------------------------------------------------------------------------------------------------#
 
@@ -189,11 +195,11 @@ def deletionLightPollution(ndarray):
 #---------- TESTS -------------#
 
 if __name__ == '__main__':
-    import imageio
-    from ImageRaw import ImageRaw
-    path = '../../Pictures_test/'
-    raw = ImageRaw(path + 'DSC_6027.NEF')
-    ndarray = raw.getndarray()
+	import imageio
+	from ImageRaw import ImageRaw
+	path = '../../Pictures_test/darks/'
+	raw = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2')
+	ndarray = raw.getndarray()
     #imageio.imsave('../../Pictures_test/testImageNEF.tiff', ndarray)
     #ndarray1 = logCorrect(ndarray)
     #imageio.imsave('../../Pictures_test/testlogCorrect.tiff', ndarray1)
@@ -205,8 +211,8 @@ if __name__ == '__main__':
     #imageio.imsave('../../Pictures_test/testsaturationCorrect.tiff', ndarray4)
     #ndarray5 = deletionGreenDominant(ndarray)
     #imageio.imsave('../../Pictures_test/testdeletionGreenDominant.tiff', ndarray5)
-    ndarray6 = medianFilter(ndarray)
-    imageio.imsave('../../Pictures_test/testmedianFilter.tiff', ndarray6)
+	ndarray6 = medianFilter(ndarray)
+	imageio.imsave('../../Pictures_test/testmedian.tiff', ndarray6)
 
 #------------------------------#
 
