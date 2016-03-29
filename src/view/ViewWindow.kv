@@ -123,12 +123,17 @@
 
 <ViewShortcut>
     width: 50
-    size_hint: (None,None)
+    size_hint_x: 0.1
+
     GridLayout:
         cols: 1
-        width: 50
+        # width: 60
+
+        padding: 5
+        spacing: 2
         Button:
             text: "Short1"
+            # background_normal: "" -> ajout de l'adresse pour une image
         Button:
             text: "Short2"
         Button:
@@ -164,17 +169,23 @@
     #     pos: root.width-self.width,0
     #     size_hint: (0.3,0.9)
 
+    ViewImage:
+        id: Image
+        pos: Shortcut.width,0
+        size_hint: ((root.width-float(Shortcut.width))/root.width-0.1,0.9)
+
+
     ViewShortcut:
         id: Shortcut
         pos: 0,root.height
 
-    ViewImage:
-        id: Image
-        pos: Shortcut.width,0
-        size_hint: ((root.width-(float(Explorer.width)+float(Shortcut.width)))/root.width,1)
+    # ViewImage:
+    #     id: Image
+    #     pos: Shortcut.width,0
+    #     size_hint: ((root.width-(float(Explorer.width)+float(Shortcut.width)))/root.width-0.1,1)
 
-    ViewExplorer:
-        id: Explorer
-        pos: root.width-Explorer.width,0
-        size_hint_x: None
-        size_hint_y: 0.9
+    # ViewExplorer:
+    #     id: Explorer
+    #     pos: root.width-Explorer.width,0
+    #     size_hint_x: None
+    #     size_hint_y: 0.9
