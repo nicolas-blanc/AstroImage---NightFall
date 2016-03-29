@@ -38,6 +38,7 @@ def median(ndarray_list):
 					for frame in range(0,lenght-1):
 						liste[frame] = ndarray_list[frame][i][j][k]
        	           	t[i][j][k] = np.median(liste)
+			print "Median : " + str(i) + "/" + str(h-2)
         return t
 
 
@@ -81,6 +82,7 @@ def sigmaReject(ndarray_list):
                    			sigmaClip[frame] = ndarray_list[frame][i][j][k]
                    	mean = np.mean(sigmaClip)
                    	t[i][j][k] = mean
+			print "SigmaReject : " + str(i) + "/" + str(h-2)
         return t
 
 
@@ -108,6 +110,7 @@ def average(ndarray_list):
 					for frame in range(0,lenght-1):
 						liste[frame] = ndarray_list[frame][i][j][k]
                    	t[i][j][k] = np.average(liste)
+			print "Average : " + str(i) + "/" + str(h-2)
         return t
 
 
@@ -125,10 +128,12 @@ def normalize(ndarray_list):
         mean = np.mean(t[i]) # Find the mean of the ndarray
         liste.append(mean)
         t[i] = np.divide(t[i], mean) # Divide ndarray by its mean, normalizing it
+    	print "Normalize 1/2 : " + str(i) + "/" + str(lenght)
     # 2) Scale all of the fields’ means so that their individual averages are equal to one another
     meantotal = sum(liste) / len(liste)  # Find the mean of the total set of ndarray_list
     for i in range(lenght):
-        t[i] = np.multiply(t[i], np.divide(meantotal, np.mean(t[i]))) # Divide 
+        t[i] = np.multiply(t[i], np.divide(meantotal, np.mean(t[i]))) # Divide
+        print "Normalize 2/2 : " + str(i) + "/" + str(lenght)
     return t
 
 
@@ -272,34 +277,33 @@ if __name__ == '__main__':
 	import imageio
 	from ImageRaw import ImageRaw
 
-# MasterDark :
-#	path = '../../Pictures_test/darks/'
-#	d1 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2')
-#	dark1 = d1.getndarray()
-#	d3 = ImageRaw(path + 'D_0015_IC405_ISO800_300s__13C.CR2')
-#	dark3 = d3.getndarray()
-#	d4 = ImageRaw(path + 'D_0014_IC405_ISO800_300s__13C.CR2')
-#	dark4 = d4.getndarray()
-#	d5 = ImageRaw(path + 'D_0013_IC405_ISO800_300s__13C.CR2')
-#	dark5 = d5.getndarray()
-#	d7 = ImageRaw(path + 'D_0012_IC405_ISO800_300s__13C.CR2')
-#	dark7 = d7.getndarray()
-#	d8 = ImageRaw(path + 'D_0011_IC405_ISO800_300s__13C.CR2')
-#	dark8 = d8.getndarray()
-#	d9 = ImageRaw(path + 'D_0010_IC405_ISO800_300s__13C.CR2')
-#	dark9 = d9.getndarray()
-#	d11 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2')
-#	dark11 = d11.getndarray()
-#	liste_dark = [dark1,dark3,dark4,dark5,dark7,dark8,dark9,dark11]
-#	result_dark = processMasterDark(liste)
+ # MasterDark :
+	path = '../../Pictures_test/darks/'
+	d1 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2')
+	dark1 = d1.getndarray()
+	d3 = ImageRaw(path + 'D_0015_IC405_ISO800_300s__13C.CR2')
+	dark3 = d3.getndarray()
+	d4 = ImageRaw(path + 'D_0014_IC405_ISO800_300s__13C.CR2')
+	dark4 = d4.getndarray()
+	d5 = ImageRaw(path + 'D_0013_IC405_ISO800_300s__13C.CR2')
+	dark5 = d5.getndarray()
+	d7 = ImageRaw(path + 'D_0012_IC405_ISO800_300s__13C.CR2')
+	dark7 = d7.getndarray()
+	d8 = ImageRaw(path + 'D_0011_IC405_ISO800_300s__13C.CR2')
+	dark8 = d8.getndarray()
+	d9 = ImageRaw(path + 'D_0010_IC405_ISO800_300s__13C.CR2')
+	dark9 = d9.getndarray()
+	d11 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2')
+	dark11 = d11.getndarray()
+	liste_dark = [dark1,dark3,dark4,dark5,dark7,dark8,dark9,dark11]
+	result_dark = processMasterDark(liste_dark)
 #	imageio.imsave('../../Pictures_test/testMasterDark.tiff', result_dark)
 
 # MasterFlat :
-	#from PIL import Image
-	from skimage import data
-	dark = data.imread('../../Pictures_test/testMasterDark.tiff')
-	#dark = np.array(darkimg)
-	path = '../../Pictures_test/flats/'
+#	from PIL import Image
+#	from skimage import data
+#	dark = data.imread('../../Pictures_test/testMasterDark.tiff')
+#	path = '../../Pictures_test/flats/'
 	f1 = ImageRaw(path + 'IMG_3059.CR2')
 	flat1 = f1.getndarray()
 	f2 = ImageRaw(path + 'IMG_3059.CR2')
@@ -323,8 +327,10 @@ if __name__ == '__main__':
 	f11 = ImageRaw(path + 'IMG_3068.CR2')
 	flat11 = f11.getndarray()
 	liste_flat = [flat1,flat2,flat3,flat4,flat5,flat6,flat7,flat8,flat9,flat10,flat11]
-	result_flat = processMasterFlat(liste_flat,dark)
-	imageio.imsave('../../Pictures_test/testMasterFlat.tiff', result)
+	result_flat = processMasterFlat(liste_flat,result_dark)
+	imageio.imsave('../../Pictures_test/testMasterFlat.jpg', result_flat)
+
+
 
 #------------------------------#
 
