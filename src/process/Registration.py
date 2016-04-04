@@ -50,8 +50,7 @@ def shift_translation(src_image, target_image):
 #---------- TESTS -------------#
 
 if __name__ == '__main__':
-
-    from PIL import Image
+    #from PIL import Image
     from skimage import data
     import imageio
 

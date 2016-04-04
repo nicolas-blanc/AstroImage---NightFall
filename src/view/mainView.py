@@ -16,9 +16,9 @@ from kivy.uix.listview import ListView
 from kivy.uix.listview import ListItemButton
 from kivy.adapters.models import SelectableDataItem
 from kivy.cache import Cache
-from kivy.core.image import Image
 from kivy.graphics.texture import Texture
-from kivy.core.image import Image as CoreImage
+from kivy.uix.image import Image
+from kivy.uix.filechooser import FileSystemLocal
 
 import io
 import os.path
@@ -26,6 +26,7 @@ import AstroProcess
 import ImageRaw
 import imageio
 import re
+import ImageFitsColor
 
 Builder.load_file('ViewWindow.kv')
 
@@ -55,28 +56,18 @@ class DataItem(SelectableDataItem):
 class ViewSelectionList(BoxLayout):
     def __init__(self, **kwargs):
         super(ViewSelectionList, self).__init__(**kwargs)
-
+        self.selection = []
         data_items = []
         list_item_args_converter = lambda row_index, obj: {'text': obj.name,'size_hint_y': None,'height': 25}
-        self.list_adapter = \
-            ListAdapter(data=data_items,
+        self.list_adapter = ListAdapter(data=data_items,
                     args_converter=list_item_args_converter,
                     selection_mode='single',
-                    propagate_selection_to_data=False,
-                    allow_empty_selection=False,
+                    propagate_selection_to_data=True,
+                    allow_empty_selection=True,
                     cls=ListItemButton)
-        #self.list_adapter = \
-        #    ListAdapter(data=data_items,
-        #            args_converter=list_item_args_converter,
-        #            selection_mode='single',
-        #            propagate_selection_to_data=False,
-        #            allow_empty_selection=False,
-        #            cls=ListItemButton)
-        #self.list_adapter.bind(on_selection_change=app.preview(self.list_adapter.selection))
-        #self.list_adapter.bind(on_selection_change=root.preview(self.list_adapter.selection))
-        #self.list_view = ListView(adapter=self.list_adapter)
 
-        #self.add_widget(self.list_view)
+        print "Listad :" + str(self.list_adapter)
+        self.list_adapter.bind(on_selection_change=self.reload)
 
     def update_list_data(self, path, filename):
             items = self.list_adapter.data
@@ -87,12 +78,28 @@ class ViewSelectionList(BoxLayout):
         print "Clear"
         self.list_adapter.data = []
 
-    def remove(self, *args):
-        if self.list_adapter.selection:
-            for i in self.list_adapter.selection:
-                for j in self.list_adapter.data:
-                    if j.name is i.text:
-                        self.list_adapter.data.remove(j)
+    def remove(self, path):
+        for j in self.list_adapter.data:
+            if j.name is path:
+                self.list_adapter.data.remove(j)
+
+    def reload(self, *args):
+        self.selection = []
+        for i in self.list_adapter.selection:
+            self.selection.append(i)
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
+            ret = super(ViewSelectionList, self).on_touch_down(touch)
+            touch.pop()
+            print self.parent
+            return ret
+
+
+class ViewFileChooser(BoxLayout):
+    pass
 
 class ViewWindow(FloatLayout):
     pass
@@ -100,72 +107,157 @@ class ViewWindow(FloatLayout):
 class ViewPreProcess(BoxLayout):
     pass
 
-class RootWindow(TabbedPanel):
+class RootWindow(BoxLayout):
     manager = ObjectProperty(None)
     def switch_to(self, header):
-        # set the Screen manager to load  the appropriate screen
-        # linked to the tab head instead of loading content
-        self.manager.current = header.screen
-        # we have to replace the functionality of the original switch_to
-        self.current_tab.state = "normal"
-        header.state = 'down'
-        self._current_tab = header
+        self.manager.current = "MainView"
+
+
+class DataImage():
+    def __init__(self, path, image, **kwargs):
+        self.path = path
+        self.image = image
 
 class mainApp(App):
     source = StringProperty(None)
+    processName = StringProperty(None)
+    result = ObjectProperty(None)
     def build(self):
         self.source = "./backgroundDefault.jpg"
-        self.image = []
+        self.pictureList = []
         self.texture = Texture.create()
+        self.texture.wrap="clamp_to_edge"
         root = RootWindow()
+
         return root
 
     def update_list_data(self, path, filename):
+        exist = False
         if filename:
-            self.root.ids["ViewPreProcess"].ids["SelectionList"].update_list_data(path,filename)
-            #Cache.remove("kv.image", self.root.ids["ViewPreProcess"].ids["Image"].source + "|False|0")
-            #Cache.remove("kv.texture", self.root.ids["ViewPreProcess"].ids["Image"].source + "|False|0")
-            defPath = os.path.join(path, filename[0])
-            if re.search('.CR2',defPath):
-                self.image = ImageRaw.ImageRaw(defPath).getndarray()
-                h,l,r = self.image.shape
-                self.texture = Texture.create(size=(l,h))
-                self.texture.blit_buffer(pbuffer = self.image.tostring(),bufferfmt="ushort",colorfmt='rgb')
-            else:
-                self.texture = Image(defPath).texture
+            print "Path : " + str(path) + " | Filename " + str(filename[0])
+            for i in self.root.ids["ViewPreProcess"].ids["SelectionList"].list_adapter.data:
+                if filename is i.name:
+                    print "Filename "+str(Filename)+" already exist\n"
+                    exist = True
+            if not exist:
+                self.root.ids["ViewPreProcess"].ids["SelectionList"].update_list_data(path,filename)
+                defPath = os.path.join(path, filename[0])
+                if re.search('.CR2',defPath):
+                    image = ImageRaw.ImageRaw(defPath).getndarray()
+                    print "Append \n"
+                    self.pictureList.append(DataImage(path=filename[0],image=image))
+                    h,l,r = image.shape
+                    self.texture = Texture.create(size=(l,h))
+                    self.texture.blit_buffer(pbuffer = image.tostring(),bufferfmt="ushort",colorfmt='rgb')
+                elif re.search('[.jpg|.png|.gif]',defPath):
+                    self.texture = Image(source=defPath).texture
 
+                self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].texture = self.texture
+                self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].size = self.texture.size
+                self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].reload()
 
-            #self.texture = Image(os.path.join(path, filename[0])).texture
-            #print self.texture
-            #self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"] = Image(wTexture)
-            #self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].source = os.path.join(path, filename[0])
-            self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].texture = self.texture
-            self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].size = self.texture.size
-            self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].reload()
-            print "size:"+str(self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].size)
-            #print "Reload : "+str(self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].source)
 
     def clear(self):
         self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].texture = Texture.create()
         self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].reload()
+        self.pictureList = []
+        self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].texture = Texture.create()
+        self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].reload()
 
-    def preview(self, selection):
-        if selection:
-            self.root.ids["ViewPreProcess"].ids["Image"].source = selection[0].text
+    def preview(self):
+        #self.root.ids["ViewPreProcess"].ids["SelectionList"].list_adapter.on_selection_change()
+        select = self.root.ids["ViewPreProcess"].ids["SelectionList"].list_adapter.selection
+        if select:
+            print "Selection change to "+str(select[0].text)
+            if re.search('.CR2',select[0].text):
+                for i in self.pictureList:
+                    if i.path is select[0].text:
+                        print "Find Image\n"
+                        h,l,r = i.image.shape
+                        self.texture = Texture.create(size=(l,h))
+                        self.texture.blit_buffer(pbuffer = i.image.tostring(),bufferfmt="ushort",colorfmt='rgb')
+            else:
+                if self.root.ids["ViewPreProcess"].ids["Explorer"].ids["icon_view_tab"].show_hidden:
+                    path = self.root.ids["ViewPreProcess"].ids["Explorer"].ids["list_view_tab"].path
+                else:
+                    path = self.root.ids["ViewPreProcess"].ids["Explorer"].ids["icon_view_tab"].path
+                self.texture = Image(source=os.path.join(path, select[0].text)).texture
+
+            self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].texture = self.texture
             self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].reload()
-            #print "Reload : "+str(self.root.ids["ViewPreProcess"].source)
+        else:
+            self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].texture = Texture.create()
+            self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].reload()
 
-    def masterDark(self):
-        items = self.root.ids["ViewPreProcess"].ids["SelectionList"].list_adapter.data
-        self.darkList = []
-        for i in items:
-            print i.name
-            dark = ImageRaw.ImageRaw(i.name).getndarray()
-            print dark
-            self.darkList.append(dark)
-        self.result_dark = AstroProcess.processMasterDark(self.darkList)
-        imageio.imsave('../../Pictures_test/MasterDark.tiff', self.result_dark)
-        del self.darkList
+    def remove(self):
+        select = self.root.ids["ViewPreProcess"].ids["SelectionList"].list_adapter.selection
+        if select:
+            if re.search('.CR2',select[0].text):
+                for i in self.pictureList:
+                    if i.path is select[0].text:
+                        print "Remove "+str(i.path)
+                        self.pictureList.remove(i)
+            self.root.ids["ViewPreProcess"].ids["SelectionList"].remove(select[0].text)
+
+    def process(self):
+        if len(self.pictureList) > 1:
+            dataList = []
+            for i in self.pictureList:
+                dataList.append(i.image)
+            print "SizeData : " + str(len(dataList))
+            if self.processName is "MasterDark":
+                print "processMasterDark"
+                self.result = AstroProcess.processMasterDark(dataList)
+                imageio.imsave('../../Pictures_test/MasterDark.tiff', self.result)
+            elif self.processName is "MasterFlat":
+                print "processMasterFlat"
+                self.result = AstroProcess.processMasterFlat(dataList)
+                imageio.imsave('../../Pictures_test/MasterFlat.tiff', self.result,'../../Pictures_test/MasterDark.tiff')
+            elif self.processName is "MasterBias":
+                print "processMasterBias"
+                self.result = AstroProcess.processMasterBias(dataList)
+                imageio.imsave('../../Pictures_test/MasterFlat.tiff', self.result)
+
+
+            self.root.manager.current = 'MainView'
+            h,l,r = self.result.shape
+            self.texture = Texture.create(size=(l,h))
+            self.texture.blit_buffer(pbuffer = self.result.tostring(),bufferfmt="ushort",colorfmt='rgb')
+            self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].texture = self.texture
+            self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].reload()
+            del self.pictureList
+            self.clear()
+        else:
+            print "No enought pictures\n"
+
+    def loadFile(self):
+        if self.root.ids["ViewFileChooser"].ids["Explorer"].ids["icon_view_tab"].show_hidden:
+            path = self.root.ids["ViewFileChooser"].ids["Explorer"].ids["list_view_tab"].path
+            selection = self.root.ids["ViewFileChooser"].ids["Explorer"].ids["list_view_tab"].selection
+        else:
+            path = self.root.ids["ViewFileChooser"].ids["Explorer"].ids["icon_view_tab"].path
+            selection = self.root.ids["ViewFileChooser"].ids["Explorer"].ids["icon_view_tab"].selection
+        if selection:
+            self.root.manager.current = 'MainView'
+
+            self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].texture = self.texture
+            self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].reload()
+        else:
+            print "No picture selected\n"
+
+    def findFile(self):
+        if self.root.ids["ViewPreProcess"].ids["Explorer"].ids["icon_view_tab"].show_hidden:
+            path = self.root.ids["ViewPreProcess"].ids["Explorer"].ids["list_view_tab"].path
+        else:
+            path = self.root.ids["ViewPreProcess"].ids["Explorer"].ids["icon_view_tab"].path
+        file_system = FileSystemLocal()
+        print "Path : " + str(path)
+        for i in file_system.listdir(path):
+            if re.search(".CR2",i):
+                print "I : " + str(i)
+                filename = []
+                filename.append(i)
+                self.update_list_data(path,filename)
 
 if __name__ == '__main__':
     mainApp().run()
