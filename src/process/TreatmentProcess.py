@@ -1,9 +1,11 @@
-#!/usr/bin/env python 
-# -*- coding: utf-8 -*- 
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 
 import numpy as np #Fundamental package for scientific computing
 from math import sqrt
+import colorsys
+
 
 # GLOBAL METHODE ------------------------------------------------------------------------------------------------------------#
 
@@ -30,12 +32,82 @@ def previsualisation(ndarray):
 	pass
 
 
-	
+# CONVERT FUNCTION ------------------------------------------------------------------------------------------------------------#
+
+
+# Convert a rgb image into a gray image
+def rgb2gray(rgbArray):
+    r, g, b = rgbArray[:,:,0], rgbArray[:,:,1], rgbArray[:,:,2]
+    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
+    print(gray)
+    return gray
+
+# Convert the color from RGB coordinates to HLS coordinates.
+# -> return a 3D nparray where the 3th dimension is : 0 hue, 1 saturation, 2 value
+def rgb_to_hls(ndarray):
+	h,l,r=ndarray.shape
+	t=np.copy(ndarray)
+	for i in range(h):
+		for j in range(l):
+			red = t[i][j][0]
+			green = t[i][j][1]
+			blue = t[i][j][2]
+			hue,lightness,saturation = colorsys.rgb_to_hls(red, green, blue)
+			t[i][j][0] = hue
+			t[i][j][1] = lightness
+			t[i][j][2] = saturation
+	return t
+
+# Convert the color from HLS coordinates to RGB coordinates.
+def hls_to_rgb(ndarray):
+	h,l,r=ndarray.shape
+	t=np.copy(ndarray)
+	for i in range(h):
+		for j in range(l):
+			hue = t[i][j][0]
+			lightness = t[i][j][1]
+			saturation = t[i][j][2]
+			red,green,blue = colorsys.hls_to_rgb(hue, lightness, saturation)
+			t[i][j][0] = red
+			t[i][j][1] = green
+			t[i][j][2] = blue
+	return t
+
+# Convert the color from RGB coordinates to HSV coordinates.
+def rgb_to_hsv(ndarray):
+	h,l,r=ndarray.shape
+	t=np.copy(ndarray)
+	for i in range(h):
+		for j in range(l):
+			red = t[i][j][0]
+			green = t[i][j][1]
+			blue = t[i][j][2]
+			hue,saturation,value = colorsys.rgb_to_hls(red, green, blue)
+			t[i][j][0] = hue
+			t[i][j][1] = saturation
+			t[i][j][2] = value
+	return t
+
+# Convert the color from HSV coordinates to RGB coordinates.
+def hsv_to_rgb(ndarray):
+	h,l,r=ndarray.shape
+	t=np.copy(ndarray)
+	for i in range(h):
+		for j in range(l):
+			hue = t[i][j][0]
+			saturation = t[i][j][1]
+			value = t[i][j][2]
+			red,green,blue = colorsys.hsv_to_rgb(hue, saturation, value)
+			t[i][j][0] = red
+			t[i][j][1] = green
+			t[i][j][2] = blue
+	return t
+
 
 # DENOISING -----------------------------------------------------------------------------------------------------------------#
 
 def medianFilter(ndarray):
-	""" Median Filter : Easy and effective method to remove a part of the noise on an image  
+	""" Median Filter : Easy and effective method to remove a part of the noise on an image
 	"""
 	medfilter = np.zeros((9))
 	h,l,r=ndarray.shape
@@ -54,15 +126,15 @@ def medianFilter(ndarray):
 		       	medfilter[8] = t[i+1][j+1][k]
 		       	median = np.median(medfilter, axis=None)
 		       	t[i][j][k] = median
-	return t	          
+	return t
 
 
 
 # CONTRAST ------------------------------------------------------------------------------------------------------------------#
 
 def logCorrect(ndarray, gain=1):
-	""" Logarithmic correction : Classic method to restrain the scale of dynamics. 
-		> this processing allows a more global appreciation of the contents of the image by increasing the level of the low lights without distorting the high lights.    
+	""" Logarithmic correction : Classic method to restrain the scale of dynamics.
+		> this processing allows a more global appreciation of the contents of the image by increasing the level of the low lights without distorting the high lights.
 	"""
 	vmin,vmax = limitValues(ndarray)
 	scale = float(vmax-vmin)
@@ -110,7 +182,7 @@ def gammaCorrect(ndarray, gamma=1, gain=1):
 # LUMINOSITY ----------------------------------------------------------------------------------------------------------------#
 
 def luminosityCorrect(ndarray, gamma=1):
-	""" To change de luminosity """
+	""" To change luminosity """
 	if gamma < 0:
 		raise ValueError("Parameter gamma should be a non-negative real number.")
 	vmin,vmax = limitValues(ndarray)
@@ -127,7 +199,7 @@ def saturationCorrect(ndarray,gain=0.5):
 		0.0 creates a black-and-white image.
 		0.5 reduces the color saturation by half.
 		1.0 causes no change.
-		2.0 doubles the color saturation. 
+		2.0 doubles the color saturation.
 	"""
 	Pr = 0.2989
 	Pg = 0.5870
@@ -177,7 +249,6 @@ def deletionGreenDominant(ndarray, loss=10):
 	return t
 
 
-
 def deletionLightPollution(ndarray):
 	# EqualizeHistogram ????
 	pass
@@ -188,15 +259,17 @@ def deletionLightPollution(ndarray):
 
 
 
-
-
-
-
 #---------- TESTS -------------#
 
 if __name__ == '__main__':
+
 	import imageio
+
+	import sys
+	path1 = '../image/'
+	sys.path.append(path1)
 	from ImageRaw import ImageRaw
+
 	path = '../../Pictures_test/darks/'
 	raw = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2')
 	ndarray = raw.getndarray()
@@ -215,16 +288,3 @@ if __name__ == '__main__':
 	imageio.imsave('../../Pictures_test/testmedian.tiff', ndarray6)
 
 #------------------------------#
-
-
-
-
-
-
-
-
-
-
-
-
-
