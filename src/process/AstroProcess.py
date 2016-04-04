@@ -302,19 +302,19 @@ def registration(ndarray_ref, ndarray_list):
 	    if decalx>=0 and decaly>=0 :
 	        for i in range(decalx,h):
 	            for j in range(decaly,l):
-	                result[i][j]=ndarray_list[nb][-decalx+i][-decaly+j]
+	                result[i][j]=img2[i-decalx][j-decaly]
 	    if decalx<0 and decaly<0 :
-	        for i in range(0,h+h*decalx):
-	            for j in range(0,l+l*decaly):
-	                result[i+decalx][j+decaly]=ndarray_list[nb][i][j]
+	        for i in range(0-decalx,h):
+	            for j in range(0-decaly,l):
+	                result[i+decalx][j+decaly]=img2[i][j]
 	    if decalx>=0 and decaly<0 :
 	        for i in range(decalx,h):
-	            for j in range(0,l+l*decaly):
-	                result[i][j+decaly]=ndarray_list[nb][-decalx+i][j]
+	            for j in range(0-decaly,l):
+	                result[i][j+decaly]=img2[i-decalx][j]
 	    if decalx<0 and decaly>=0 :
-	        for i in range(0,h+h*decalx):
+	        for i in range(0-decalx,h):
 	            for j in range(decaly,l):
-	                result[i+decalx][j]=ndarray_list[nb][i][-decaly+j]
+	                result[i+decalx][j]=img2[i][j-decaly]
 		# On applique les changements sur l'image de départ
 		ndarray_list[nb] = result
 	# On retourne la liste des toutes les images (dont l'image de référence)
