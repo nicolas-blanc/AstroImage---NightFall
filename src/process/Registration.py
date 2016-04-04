@@ -30,39 +30,43 @@ def shift_translation(src_image, target_image):
     image_product = src_freq * target_freq.conj()
     cross_correlation = np.fft.ifftn(image_product)
 
-    # Locate maximum
+    # Locate maximum in order to calcul the shift between two numpy array
     maxima = np.unravel_index(np.argmax(np.abs(cross_correlation)),cross_correlation.shape)
     midpoints = np.array([np.fix(axis_size / 2) for axis_size in shape])
 
-    shifts = np.array(maxima, dtype=np.float64)
-    shifts[shifts > midpoints] -= np.array(shape)[shifts > midpoints]
+    shift = np.array(maxima, dtype=np.float64)
+    shift[shift > midpoints] -= np.array(shape)[shift > midpoints]
 
-    src_amp = np.sum(np.abs(src_freq) ** 2) / src_freq.size
-    target_amp = np.sum(np.abs(target_freq) ** 2) / target_freq.size
-    CCmax = cross_correlation.max()
-
-    # If its only one row or column the shift along that dimension has no effect. We set to zero.
+    # If its only one row or column the shift along that dimension has no effect : we set to zero.
     for dim in range(src_freq.ndim):
         if shape[dim] == 1:
-            shifts[dim] = 0
+            shift[dim] = 0
 
-    return shifts
+    return shift
 
 
+
+
+#---------- TESTS -------------#
 
 if __name__ == '__main__':
+
     from PIL import Image
     from skimage import data
     import imageio
+
+    import sys
+    path = '../image/'
+    sys.path.append(path)
     from ImageRaw import ImageRaw
 
-#    img = data.imread('renard-marche-neige.jpeg')
-#    img2 = data.imread('renard-marche-neige4.jpeg')
-    path = '../../Pictures_test/lights/'
-    img = ImageRaw(path + 'L_0022_IC405_ISO800_300s__15C.CR2').getndarray()
-    img2 = ImageRaw(path + 'L_0022_IC405_ISO800_300s__13C.CR2').getndarray()
-    imageio.imsave('light_ref.jpg', img)
-    imageio.imsave('light_dec.jpg', img2)
+    img2 = data.imread('renard-marche-neige.jpeg')
+    img = data.imread('renard-marche-neige2.jpeg')
+#    path = '../../Pictures_test/lights/'
+#    img = ImageRaw(path + 'L_0022_IC405_ISO800_300s__15C.CR2').getndarray()
+#    img2 = ImageRaw(path + 'L_0022_IC405_ISO800_300s__13C.CR2').getndarray()
+#    imageio.imsave('light_ref.jpg', img)
+#    imageio.imsave('light_dec.jpg', img2)
 
     result = np.copy(img)
     h,l,r = img.shape
@@ -74,10 +78,10 @@ if __name__ == '__main__':
     if decalx>=0 and decaly>=0 :
         for i in range(decalx,h):
             for j in range(decaly,l):
-                result[i][j]=img2[-decalx+i][-decaly+j]
+                result[i][j]=img2[i-decalx][j-decaly]
     if decalx<0 and decaly<0 :
-        for i in range(0,h+h*decalx):
-            for j in range(0,l+l*decaly):
+        for i in range(0-decalx,h):
+            for j in range(0-decaly,l):
                 result[i+decalx][j+decaly]=img2[i][j]
     if decalx>=0 and decaly<0 :
         for i in range(decalx,h):
