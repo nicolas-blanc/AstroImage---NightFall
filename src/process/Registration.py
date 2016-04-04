@@ -60,13 +60,13 @@ if __name__ == '__main__':
     sys.path.append(path)
     from ImageRaw import ImageRaw
 
-    img = data.imread('renard-marche-neige.jpeg')
-    img2 = data.imread('renard-marche-neige4.jpeg')
-#    path = '../../Pictures_test/lights/'
-#    img = ImageRaw(path + 'L_0022_IC405_ISO800_300s__15C.CR2').getndarray()
-#    img2 = ImageRaw(path + 'L_0022_IC405_ISO800_300s__13C.CR2').getndarray()
-#    imageio.imsave('light_ref.jpg', img)
-#    imageio.imsave('light_dec.jpg', img2)
+    #img2 = data.imread('renard-marche-neige.jpeg')
+    #img = data.imread('renard-marche-neige2.jpeg')
+    path = '../../Pictures_test/lights/'
+    img = ImageRaw(path + 'L_0022_IC405_ISO800_300s__15C.CR2').getndarray()
+    img2 = ImageRaw(path + 'L_0022_IC405_ISO800_300s__13C.CR2').getndarray()
+    imageio.imsave('light_ref.jpg', img)
+    imageio.imsave('light_dec.jpg', img2)
 
     result = np.copy(img)
     h,l,r = img.shape

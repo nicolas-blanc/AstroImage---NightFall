@@ -302,19 +302,19 @@ def registration(ndarray_ref, ndarray_list):
 		if decalx>=0 and decaly>=0 :
 			for i in range(decalx,h):
 				for j in range(decaly,l):
-					result[i][j]=img2[i-decalx][j-decaly]
+					result[i][j]=ndarray_list[nb][i-decalx][j-decaly]
 		if decalx<0 and decaly<0 :
 		    for i in range(0-decalx,h):
 		        for j in range(0-decaly,l):
-		            result[i+decalx][j+decaly]=img2[i][j]
+		            result[i+decalx][j+decaly]=ndarray_list[nb][i][j]
 		if decalx>=0 and decaly<0 :
 		    for i in range(decalx,h):
 		        for j in range(0-decaly,l):
-		            result[i][j+decaly]=img2[i-decalx][j]
+		            result[i][j+decaly]=ndarray_list[nb][i-decalx][j]
 		if decalx<0 and decaly>=0 :
 		    for i in range(0-decalx,h):
 		        for j in range(decaly,l):
-		            result[i+decalx][j]=img2[i][j-decaly]
+		            result[i+decalx][j]=ndarray_list[nb][i][j-decaly]
 		# On applique les changements sur l'image de départ
 		ndarray_list[nb] = result
 	# On retourne la liste des toutes les images (dont l'image de référence)
@@ -394,13 +394,13 @@ if __name__ == '__main__':
 	img = ImageRaw(path + 'L_0022_IC405_ISO800_300s__15C.CR2').getndarray()
 	img2 = ImageRaw(path + 'L_0021_IC405_ISO800_300s__15C.CR2').getndarray()
 	img3 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
-    imageio.imsave('light_ref.jpg', img)
-    imageio.imsave('light_dec0.jpg', img2)
+	imageio.imsave('light_ref.jpg', img)
+	imageio.imsave('light_dec0.jpg', img2)
 	imageio.imsave('light_dec1.jpg', img3)
 
 	ref, result = registration(img,[img2,img3])
 	lenght = len(result)
 	for i in range(lenght) :
-	    imageio.imsave('light_decal_register'+str(i)+'.jpg', result[i])
+		imageio.imsave('light_decal_register'+str(i)+'.jpg', result[i])
 
 #------------------------------#
