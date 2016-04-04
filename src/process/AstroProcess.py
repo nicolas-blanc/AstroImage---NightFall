@@ -4,8 +4,8 @@
 import numpy as np
 from math import sqrt
 
-import Registration
-import TreatmentProcess
+import Registration as reg
+#import TreatmentProcess
 
 
 
@@ -289,36 +289,36 @@ def calibrationWithBias(ndarray_list, ndarray_masterDark, ndarray_masterFlat, nd
 def registration(ndarray_ref, ndarray_list):
 	""" To overlap LIGHT image (after the calibration) """
 	lenght = len(ndarray_list)
-    h,l,r = ndarray_ref.shape
+	h,l,r = ndarray_ref.shape
 
 	for nb in range(lenght) :
 		# Le résultat est toujours calculé à partir de l'image référence
 		result = np.copy(ndarray_ref)
 		# Calcul de facteur de décalage
-	    shift = register_translation(ndarray_ref,ndarray_list[nb])
-	    decalx = int(shift[0])
-	    decaly = int(shift[1])
+		shift = reg.shift_translation(ndarray_ref,ndarray_list[nb])
+		decalx = int(shift[0])
+		decaly = int(shift[1])
 		# On applique le facteur de décalage, selon le signe de ce décalage
-	    if decalx>=0 and decaly>=0 :
-	        for i in range(decalx,h):
-	            for j in range(decaly,l):
-	                result[i][j]=img2[i-decalx][j-decaly]
-	    if decalx<0 and decaly<0 :
-	        for i in range(0-decalx,h):
-	            for j in range(0-decaly,l):
-	                result[i+decalx][j+decaly]=img2[i][j]
-	    if decalx>=0 and decaly<0 :
-	        for i in range(decalx,h):
-	            for j in range(0-decaly,l):
-	                result[i][j+decaly]=img2[i-decalx][j]
-	    if decalx<0 and decaly>=0 :
-	        for i in range(0-decalx,h):
-	            for j in range(decaly,l):
-	                result[i+decalx][j]=img2[i][j-decaly]
+		if decalx>=0 and decaly>=0 :
+			for i in range(decalx,h):
+				for j in range(decaly,l):
+					result[i][j]=img2[i-decalx][j-decaly]
+		if decalx<0 and decaly<0 :
+		    for i in range(0-decalx,h):
+		        for j in range(0-decaly,l):
+		            result[i+decalx][j+decaly]=img2[i][j]
+		if decalx>=0 and decaly<0 :
+		    for i in range(decalx,h):
+		        for j in range(0-decaly,l):
+		            result[i][j+decaly]=img2[i-decalx][j]
+		if decalx<0 and decaly>=0 :
+		    for i in range(0-decalx,h):
+		        for j in range(decaly,l):
+		            result[i+decalx][j]=img2[i][j-decaly]
 		# On applique les changements sur l'image de départ
 		ndarray_list[nb] = result
 	# On retourne la liste des toutes les images (dont l'image de référence)
-	return ndarray_list.append(ndarray_ref)
+	return (ndarray_ref,ndarray_list)
 
 
 
@@ -358,31 +358,47 @@ if __name__ == '__main__':
 #	del dark11
 
 # MasterFlat :
-	result_dark = data.imread('../../Pictures_test/testMasterDark.tiff')
-	path = '../../Pictures_test/flats/'
-	flat1 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
-	flat2 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
-	flat3 = ImageRaw(path + 'IMG_3060.CR2').getndarray()
-	flat4 = ImageRaw(path + 'IMG_3061.CR2').getndarray()
-	flat5 = ImageRaw(path + 'IMG_3062.CR2').getndarray()
-	flat6 = ImageRaw(path + 'IMG_3063.CR2').getndarray()
-	flat7 = ImageRaw(path + 'IMG_3064.CR2').getndarray()
-	flat8 = ImageRaw(path + 'IMG_3065.CR2').getndarray()
-	flat9 = ImageRaw(path + 'IMG_3066.CR2').getndarray()
-	flat10 = ImageRaw(path + 'IMG_3067.CR2').getndarray()
-	flat11 = ImageRaw(path + 'IMG_3068.CR2').getndarray()
-	result_flat = processMasterFlat([flat1,flat2,flat3,flat4,flat5,flat6,flat7,flat8,flat9,flat10,flat11],result_dark)
-	imageio.imsave('../../Pictures_test/testMasterFlat.jpg', result_flat)
-	del flat1
-	del flat2
-	del flat3
-	del flat4
-	del flat5
-	del flat6
-	del flat7
-	del flat8
-	del flat9
-	del flat10
-	del flat11
+#	result_dark = data.imread('../../Pictures_test/testMasterDark.tiff')
+#	path = '../../Pictures_test/flats/'
+#	flat1 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
+#	flat2 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
+#	flat3 = ImageRaw(path + 'IMG_3060.CR2').getndarray()
+#	flat4 = ImageRaw(path + 'IMG_3061.CR2').getndarray()
+#	flat5 = ImageRaw(path + 'IMG_3062.CR2').getndarray()
+#	flat6 = ImageRaw(path + 'IMG_3063.CR2').getndarray()
+#	flat7 = ImageRaw(path + 'IMG_3064.CR2').getndarray()
+#	flat8 = ImageRaw(path + 'IMG_3065.CR2').getndarray()
+#	flat9 = ImageRaw(path + 'IMG_3066.CR2').getndarray()
+#	flat10 = ImageRaw(path + 'IMG_3067.CR2').getndarray()
+#	flat11 = ImageRaw(path + 'IMG_3068.CR2').getndarray()
+#	result_flat = processMasterFlat([flat1,flat2,flat3,flat4,flat5,flat6,flat7,flat8,flat9,flat10,flat11],result_dark)
+#	imageio.imsave('../../Pictures_test/testMasterFlat.jpg', result_flat)
+#	del flat1
+#	del flat2
+#	del flat3
+#	del flat4
+#	del flat5
+#	del flat6
+#	del flat7
+#	del flat8
+#	del flat9
+#	del flat10
+#	del flat11
+
+
+# Registration :
+	img = data.imread('renard-marche-neige.jpeg')
+	img2 = data.imread('renard-marche-neige4.jpeg')
+	img3 = data.imread('renard-marche-neige2.jpeg')
+#    path = '../../Pictures_test/lights/'
+#    img = ImageRaw(path + 'L_0022_IC405_ISO800_300s__15C.CR2').getndarray()
+#    img2 = ImageRaw(path + 'L_0022_IC405_ISO800_300s__13C.CR2').getndarray()
+#    imageio.imsave('light_ref.jpg', img)
+#    imageio.imsave('light_dec.jpg', img2)
+
+	ref, result = registration(img,[img2,img3])
+	lenght = len(result)
+	for i in range(lenght) :
+	    imageio.imsave('light_decal_register'+str(i)+'.jpg', result[i])
 
 #------------------------------#
