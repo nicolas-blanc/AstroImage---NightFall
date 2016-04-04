@@ -1,10 +1,15 @@
-#!/usr/bin/env python 
-# -*- coding: utf-8 -*- 
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import numpy as np
 from math import sqrt
 
-# INFO : 
+import Registration
+import TreatmentProcess
+
+
+
+# INFO :
 # http://astro.dialou.fr/techniques/astrophotographie/capture-des-images-de-calibration/
 # http://www.astrosurf.com/d_bergeron/astronomie/Bibliotheque/Traitement%20image/Pretraitement%20des%20images/traitement%20image.htm#Images%20DARK
 
@@ -12,9 +17,8 @@ from math import sqrt
 # GENERAL METHODE ------------------------------------------------------------------------------------------------------------#
 
 
-
 # MEDIAN : the median combination allow to eliminates pixels deviants. It is the one that we shall usually use to combine Flat field (remove completely any tracks of artéfacts)
-# so this combination eliminates space rays, tracks of satellites, travel of asteroids, etc. 
+# so this combination eliminates space rays, tracks of satellites, travel of asteroids, etc.
 # but we obtain a MASTERDARK with a S/N of the order of 25 % a 30 %
 
 def median(ndarray_list):
@@ -62,6 +66,7 @@ def sigmaReject(ndarray_list):
 		h,l,r = ndarray_list[0].shape
 		lenght = len(ndarray_list)
 		for i in range(0,h-1):
+			print "SigmaReject : " + str(i) + "/" + str(h-2)
 			for j in range(0,l-1):
 				for k in range(0,r-1):
 					# from the set of corresponding pixel values from each source image, compute the average
@@ -82,7 +87,6 @@ def sigmaReject(ndarray_list):
                    			sigmaClip[frame] = ndarray_list[frame][i][j][k]
                    	mean = np.mean(sigmaClip)
                    	t[i][j][k] = mean
-			print "SigmaReject : " + str(i) + "/" + str(h-2)
         return t
 
 
@@ -117,27 +121,30 @@ def average(ndarray_list):
 
 # The normalization consists in putting pixels in the same intensity before being combined
 
-# By dividing the flat-field pixel value by the mean of all the pixels in the flat-field image, we arrive at the normalized pixel value. 
-# A pixel that has a value equal to the mean will be normalized to 1, while a pixel that has a value less than the mean will be normalized to less than 1, and pixels with values above the mean will be normalized to more than 1. 
+# By dividing the flat-field pixel value by the mean of all the pixels in the flat-field image, we arrive at the normalized pixel value.
+# A pixel that has a value equal to the mean will be normalized to 1, while a pixel that has a value less than the mean will be normalized to less than 1, and pixels with values above the mean will be normalized to more than 1.
 # Any image-processing program that performs calibration takes care of this normalization automatically, but it’s important to understand the process, as we’ll see when we talk about how to get good flats.
 
 def normalize(ndarray_list):
     """ Normalize each ndarray and scale all
-    """   
+    """
     t = list(ndarray_list)
     liste = []
     lenght = len(t)
+    print "Taille de la liste d'image à traiter : "+ str(lenght)
     # 1) Normalize each flat field, i.e. divide it by its mean entry value
     for i in range(lenght):
+    	print "Normalize 1/2 : " + str(i+1) + "/" + str(lenght)
         mean = np.mean(t[i]) # Find the mean of the ndarray
+        print "Moyenne de la " + str(i+1) + " image : " + str(mean)
         liste.append(mean)
-        t[i] = np.divide(t[i], mean) # Divide ndarray by its mean, normalizing it
-    	print "Normalize 1/2 with mean " + mean + " : " + str(i) + "/" + str(lenght)
+        t[i] = np.true_divide(t[i], mean) # Divide ndarray by its mean, normalizing it
     # 2) Scale all of the fields’ means so that their individual averages are equal to one another
     meanofmean = sum(liste) / len(liste)  # Find the mean of the total set of ndarray_list
+    print "Moyenne global de toutes les images : " + str(meanofmean)
     for i in range(lenght):
-        t[i] = np.multiply(t[i], np.divide(meanofmean, np.mean(t[i]))) # Divide
-        print "Normalize 2/2 with " + np.divide(meanofmean, np.mean(t[i])) + " : "+ str(i) + "/" + str(lenght)
+    	print "Normalize 2/2 with : "+ str(i+1) + "/" + str(lenght)
+        t[i] = np.multiply(t[i], np.true_divide(meanofmean, np.mean(t[i]))) # Divide
     return t
 
 
@@ -152,7 +159,6 @@ def processMasterDark(ndarray_list) :
 	"""
 	# 1) Create a sigma reject array from all of them, entry-by-entry.
 	return sigmaReject(ndarray_list)
-
 
 def processMasterDarkWithBias(ndarray_list, ndarray_masterBias) :
 	""" The MASTERDARK image will serve to remove the thermal noise and random noise on our LIGHT image
@@ -185,20 +191,39 @@ def processMasterDarkFlat(ndarray_list, ndarray_masterBias) :
 
 # Flats are images portraying the sensitivity of individual pixels in the frame, which is illuminated uniformly
 
-def processMasterFlat(ndarray_list, ndarray_masterDark) :
+def processMasterFlat1(ndarray_list, ndarray_masterDark) :
 	""" The MASTERFLAT image will serve to remove all track of dusts, gradient, vignetting on our LIGHT image
 		> Without MASTERBIAS
 	"""
 	# 1) Subtract the master dark frame
-	flats = list(ndarray_list)
-	lenght = len(flats)
-	h,l,r = flats[0].shape
-	for i in range(lenght):
-		flats[i] = np.subtract(flats[i], ndarray_masterDark)
+	lenght = len(ndarray_list)
+	h,l,r = ndarray_list[0].shape
+	vmin,vmax = limitValues(ndarray_list[0])
+#	for frame in range(lenght):
+#		print "Substract Dark to Flats : " + str(frame+1) + "/" + str(lenght)
+#		ndarray_list[frame] = np.subtract(ndarray_list[frame],ndarray_masterDark)
+#		for i in range(h):
+#			for j in range(l):
+#				for k in range(r):
+#					if(ndarray_list[frame][i][j][k] < vmin):
+#						ndarray_list[frame][i][j][k] = vmin
 	# 2) Normalize all frame
 	# 3) Create a median array from all of them, entry-by-entry.
-	return median(normalize(flats))
+	return median(normalize(ndarray_list))
 
+def processMasterFlat(ndarray_list, ndarray_masterDark):
+	""" The MASTERFLAT image will serve to remove all track of dusts, gradient, vignetting on our LIGHT image
+		> Without MASTERBIAS
+	"""
+	lenght = len(ndarray_list)
+	h,l,r = ndarray_list[0].shape
+	flatsAvg = np.zeros_like(ndarray_list[0])
+	flats = np.zeros_like(ndarray_list[0])
+	for frame in range(lenght):
+		print "ProcessMasterFlat : " + str(frame+1) + "/" + str(lenght)
+		flats = np.subtract(ndarray_list[frame],ndarray_masterDark)
+		flatsAvg = np.add(flatsAvg,flats)
+	return np.divide(flatsAvg,np.mean(flatsAvg))
 
 def processMasterFlatWithBias(ndarray_list, ndarray_masterDarkFlat, ndarray_masterBias) :
 	""" The MASTERFLAT image will serve to remove all track of dusts, gradient, vignetting on our LIGHT image
@@ -260,43 +285,80 @@ def calibrationWithBias(ndarray_list, ndarray_masterDark, ndarray_masterFlat, nd
 	return normalize(lights_list)
 
 
-def registration(ndarray_list):
+
+def registration(ndarray_ref, ndarray_list):
 	""" To overlap LIGHT image (after the calibration) """
-	pass
+	lenght = len(ndarray_list)
+    h,l,r = ndarray_ref.shape
+
+	for nb in range(lenght) :
+		# Le résultat est toujours calculé à partir de l'image référence
+		result = np.copy(ndarray_ref)
+		# Calcul de facteur de décalage
+	    shift = register_translation(ndarray_ref,ndarray_list[nb])
+	    decalx = int(shift[0])
+	    decaly = int(shift[1])
+		# On applique le facteur de décalage, selon le signe de ce décalage
+	    if decalx>=0 and decaly>=0 :
+	        for i in range(decalx,h):
+	            for j in range(decaly,l):
+	                result[i][j]=ndarray_list[nb][-decalx+i][-decaly+j]
+	    if decalx<0 and decaly<0 :
+	        for i in range(0,h+h*decalx):
+	            for j in range(0,l+l*decaly):
+	                result[i+decalx][j+decaly]=ndarray_list[nb][i][j]
+	    if decalx>=0 and decaly<0 :
+	        for i in range(decalx,h):
+	            for j in range(0,l+l*decaly):
+	                result[i][j+decaly]=ndarray_list[nb][-decalx+i][j]
+	    if decalx<0 and decaly>=0 :
+	        for i in range(0,h+h*decalx):
+	            for j in range(decaly,l):
+	                result[i+decalx][j]=ndarray_list[nb][i][-decaly+j]
+		# On applique les changements sur l'image de départ
+		ndarray_list[nb] = result
+	# On retourne la liste des toutes les images (dont l'image de référence)
+	return ndarray_list.append(ndarray_ref)
+
 
 
 
 #---------- TESTS -------------#
 
 if __name__ == '__main__':
+
 	import imageio
+	from PIL import Image
+	from skimage import data
+
+	import sys
+	path1 = '../image/'
+	sys.path.append(path1)
 	from ImageRaw import ImageRaw
 
- # MasterDark :
-	path = '../../Pictures_test/darks/'
-	dark1 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2').getndarray()
-	dark3 = ImageRaw(path + 'D_0015_IC405_ISO800_300s__13C.CR2').getndarray()
-	dark4 = ImageRaw(path + 'D_0014_IC405_ISO800_300s__13C.CR2').getndarray()
-	dark5 = ImageRaw(path + 'D_0013_IC405_ISO800_300s__13C.CR2').getndarray()
-	dark7 = ImageRaw(path + 'D_0012_IC405_ISO800_300s__13C.CR2').getndarray()
-	dark8 = ImageRaw(path + 'D_0011_IC405_ISO800_300s__13C.CR2').getndarray()
-	dark9 = ImageRaw(path + 'D_0010_IC405_ISO800_300s__13C.CR2').getndarray()
-	dark11 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2').getndarray()
-	result_dark = processMasterDark([dark1,dark3,dark4,dark5,dark7,dark8,dark9,dark11])
-	imageio.imsave('../../Pictures_test/testMasterDark.tiff', result_dark)
-	del dark1
-	del dark3
-	del dark4
-	del dark5
-	del dark7
-	del dark8
-	del dark9
-	del dark11
+# MasterDark :
+#	path = '../../Pictures_test/darks/'
+#	dark1 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2').getndarray()
+#	dark3 = ImageRaw(path + 'D_0015_IC405_ISO800_300s__13C.CR2').getndarray()
+#	dark4 = ImageRaw(path + 'D_0014_IC405_ISO800_300s__13C.CR2').getndarray()
+#	dark5 = ImageRaw(path + 'D_0013_IC405_ISO800_300s__13C.CR2').getndarray()
+#	dark7 = ImageRaw(path + 'D_0012_IC405_ISO800_300s__13C.CR2').getndarray()
+#	dark8 = ImageRaw(path + 'D_0011_IC405_ISO800_300s__13C.CR2').getndarray()
+#	dark9 = ImageRaw(path + 'D_0010_IC405_ISO800_300s__13C.CR2').getndarray()
+#	dark11 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2').getndarray()
+#	result_dark = processMasterDark([dark1,dark3,dark4,dark5,dark7])
+#	imageio.imsave('../../Pictures_test/testMasterDark.tiff', result_dark)
+#	del dark1
+#	del dark3
+#	del dark4
+#	del dark5
+#	del dark7
+#	del dark8
+#	del dark9
+#	del dark11
 
 # MasterFlat :
-#	from PIL import Image
-#	from skimage import data
-#	dark = data.imread('../../Pictures_test/testMasterDark.tiff')
+	result_dark = data.imread('../../Pictures_test/testMasterDark.tiff')
 	path = '../../Pictures_test/flats/'
 	flat1 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
 	flat2 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
@@ -324,6 +386,3 @@ if __name__ == '__main__':
 	del flat11
 
 #------------------------------#
-
-
-
