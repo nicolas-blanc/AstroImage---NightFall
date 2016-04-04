@@ -60,8 +60,8 @@ if __name__ == '__main__':
     sys.path.append(path)
     from ImageRaw import ImageRaw
 
-    img2 = data.imread('renard-marche-neige.jpeg')
-    img = data.imread('renard-marche-neige2.jpeg')
+    img = data.imread('renard-marche-neige.jpeg')
+    img2 = data.imread('renard-marche-neige4.jpeg')
 #    path = '../../Pictures_test/lights/'
 #    img = ImageRaw(path + 'L_0022_IC405_ISO800_300s__15C.CR2').getndarray()
 #    img2 = ImageRaw(path + 'L_0022_IC405_ISO800_300s__13C.CR2').getndarray()
@@ -85,11 +85,11 @@ if __name__ == '__main__':
                 result[i+decalx][j+decaly]=img2[i][j]
     if decalx>=0 and decaly<0 :
         for i in range(decalx,h):
-            for j in range(0,l+l*decaly):
-                result[i][j+decaly]=img2[-decalx+i][j]
+            for j in range(0-decaly,l):
+                result[i][j+decaly]=img2[i-decalx][j]
     if decalx<0 and decaly>=0 :
-        for i in range(0,h+h*decalx):
+        for i in range(0-decalx,h):
             for j in range(decaly,l):
-                result[i+decalx][j]=img2[i][-decaly+j]
+                result[i+decalx][j]=img2[i][j-decaly]
 
     imageio.imsave('light_decal_register.jpg', result)
