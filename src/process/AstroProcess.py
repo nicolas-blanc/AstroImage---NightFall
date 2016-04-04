@@ -387,14 +387,16 @@ if __name__ == '__main__':
 
 
 # Registration :
-	img = data.imread('renard-marche-neige.jpeg')
-	img2 = data.imread('renard-marche-neige4.jpeg')
-	img3 = data.imread('renard-marche-neige2.jpeg')
-#    path = '../../Pictures_test/lights/'
-#    img = ImageRaw(path + 'L_0022_IC405_ISO800_300s__15C.CR2').getndarray()
-#    img2 = ImageRaw(path + 'L_0022_IC405_ISO800_300s__13C.CR2').getndarray()
-#    imageio.imsave('light_ref.jpg', img)
-#    imageio.imsave('light_dec.jpg', img2)
+#	img = data.imread('renard-marche-neige.jpeg')
+#	img2 = data.imread('renard-marche-neige4.jpeg')
+#	img3 = data.imread('renard-marche-neige2.jpeg')
+	path = '../../Pictures_test/lights/'
+	img = ImageRaw(path + 'L_0022_IC405_ISO800_300s__15C.CR2').getndarray()
+	img2 = ImageRaw(path + 'L_0021_IC405_ISO800_300s__15C.CR2').getndarray()
+	img3 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+    imageio.imsave('light_ref.jpg', img)
+    imageio.imsave('light_dec0.jpg', img2)
+	imageio.imsave('light_dec1.jpg', img3)
 
 	ref, result = registration(img,[img2,img3])
 	lenght = len(result)
