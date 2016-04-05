@@ -23,7 +23,7 @@ class Image(object):
 
     def getSize(self):
     	""" Return the size of Image"""
-    	return self._size       
+    	return self._size
 
     def saveToFits(self, path, fitsName, LATOBS='Not informed', LONGOBS='Not informed'):
         """ Save a 3-color array to separate FITS images """
