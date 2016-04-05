@@ -334,7 +334,7 @@ def registration(ndarray_ref, ndarray_list):
 	""" To overlap LIGHT image (after the calibration) """
 	ndarray_ref,ndarray_list = alignment(ndarray_ref, ndarray_list)
 	ndarray_list.append(ndarray_ref)
-	sigmaReject(ndarray_list)
+	return sigmaReject(ndarray_list)
 
 
 
@@ -414,16 +414,16 @@ if __name__ == '__main__':
 	img2 = ImageRaw(path + 'L_0021_IC405_ISO800_300s__15C.CR2').getndarray()
 	img3 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
 	img4 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
-	img5 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
-	img6 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
-	img7 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
-	img8 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+#	img5 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+#	img6 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+#	img7 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+#	img8 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
 #   imageio.imsave('light_ref.jpg', img)
 #   imageio.imsave('light_dec0.jpg', img2)
 #	imageio.imsave('light_dec1.jpg', img3)
 
-	result = registration(img,[img2,img3,img4,img5,img6,img7,img8])
-	imageio.imsave('light_register.jpg', result)
+	result = registration(img,[img2,img3,img4])
+	imageio.imsave('light_register.tiff', result)
 #	lenght = len(result)
 #	for i in range(lenght) :
 #	    imageio.imsave('light_decal_register'+str(i)+'.jpg', result[i])

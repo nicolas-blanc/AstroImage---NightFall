@@ -19,8 +19,11 @@ from kivy.cache import Cache
 from kivy.graphics.texture import Texture
 from kivy.uix.image import Image
 from kivy.uix.filechooser import FileSystemLocal
+from kivy.uix.dropdown import DropDown
+from skimage import data, io
 
-import io
+import skimage
+import io as iolib
 import os.path
 import AstroProcess
 import ImageRaw
@@ -36,8 +39,15 @@ class ViewExplorer(BoxLayout):
 class ViewImage(BoxLayout):
     pass
 
-class ViewMenu(BoxLayout):
+class CustomDropDown(DropDown):
     pass
+
+class ViewMenu(BoxLayout):
+    def __init__(self, *args, **kwargs):
+        super(BoxLayout, self).__init__(*args, **kwargs)
+        Clock.schedule_interval(self.update, 1./60)
+        self.refs = [self.EditButton.__self__]
+    #pass
 
 class ViewProcess(BoxLayout):
     pass
@@ -66,7 +76,6 @@ class ViewSelectionList(BoxLayout):
                     allow_empty_selection=True,
                     cls=ListItemButton)
 
-        print "Listad :" + str(self.list_adapter)
         self.list_adapter.bind(on_selection_change=self.reload)
 
     def update_list_data(self, path, filename):
@@ -128,7 +137,7 @@ class mainApp(App):
         self.texture = Texture.create()
         self.texture.wrap="clamp_to_edge"
         root = RootWindow()
-
+        self.widget = root.ids["ViewWindow"].ids["Menu"].ids["Edit"]
         return root
 
     def update_list_data(self, path, filename):
@@ -144,13 +153,19 @@ class mainApp(App):
                 defPath = os.path.join(path, filename[0])
                 if re.search('.CR2',defPath):
                     image = ImageRaw.ImageRaw(defPath).getndarray()
-                    print "Append \n"
+                    #print "Append \n"
                     self.pictureList.append(DataImage(path=filename[0],image=image))
                     h,l,r = image.shape
                     self.texture = Texture.create(size=(l,h))
                     self.texture.blit_buffer(pbuffer = image.tostring(),bufferfmt="ushort",colorfmt='rgb')
                 elif re.search('[.jpg|.png|.gif]',defPath):
-                    self.texture = Image(source=defPath).texture
+                    image = io.imread(defPath)
+                    self.pictureList.append(DataImage(path=filename[0],image=image))
+                    h,l,r = image.shape
+                    self.texture = Texture.create(size=(l,h))
+                    self.texture.blit_buffer(pbuffer = image.tostring(),bufferfmt="ubyte",colorfmt='rgb')
+                    self.texture.flip_vertical()
+
 
                 self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].texture = self.texture
                 self.root.ids["ViewPreProcess"].ids["Image"].ids["currentImage"].size = self.texture.size
@@ -217,6 +232,9 @@ class mainApp(App):
                 print "processMasterBias"
                 self.result = AstroProcess.processMasterBias(dataList)
                 imageio.imsave('../../Pictures_test/MasterFlat.tiff', self.result)
+            elif self.processName is "Registration":
+                print "Registration"
+
 
 
             self.root.manager.current = 'MainView'
@@ -227,6 +245,27 @@ class mainApp(App):
             self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].reload()
             del self.pictureList
             self.clear()
+        elif len(self.pictureList) == 1:
+            if self.processName is "medianFilter":
+                self.result = TreatmentProcess.medianFilter(self.pictureList[0].image)
+            elif self.processName is "logCorrect":
+                self.result = TreatmentProcess.logCorrect(self.pictureList[0].image)
+            elif self.processName is "gammaCorrect":
+                self.result = TreatmentProcess.gammaCorrect(self.pictureList[0].image)
+            elif self.processName is "luminosityCorrect":
+                self.result = TreatmentProcess.luminosityCorrect(self.pictureList[0].image)
+            elif self.processName is "saturationCorrect":
+                self.result = TreatmentProcess.saturationCorrect(self.pictureList[0].image)
+            elif self.processName is "deletionGreenDominant":
+                self.result = TreatmentProcess.deletionGreenDominant(self.pictureList[0].image)
+
+            self.root.manager.current = 'MainView'
+            h,l,r = self.result.shape
+            self.texture = Texture.create(size=(l,h))
+            self.texture.blit_buffer(pbuffer = self.result.tostring(),bufferfmt="ushort",colorfmt='rgb')
+            self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].texture = self.texture
+            self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].reload()
+
         else:
             print "No enought pictures\n"
 
@@ -258,6 +297,9 @@ class mainApp(App):
                 filename = []
                 filename.append(i)
                 self.update_list_data(path,filename)
+
+    def showProcess(self):
+        self.root.ids["ViewWindow"].ids["Menu"].ids["DropDown"].open(self.widget)
 
 if __name__ == '__main__':
     mainApp().run()

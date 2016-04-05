@@ -39,7 +39,61 @@
             keep_ratio: True
             allow_stretch: True
 
+<CustomDropDown>:
+    Button:
+        text:"Median Filter"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "medianFilter"
+            app.process()
+
+    Button:
+        text:"Log Correct"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "logCorrect"
+            app.process()
+
+    Button:
+        text:"Gamma Correct"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "gammaCorrect"
+            app.process()
+
+    Button:
+        text:"Luminosity Correct"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "luminosityCorrect"
+            app.process()
+
+    Button:
+        text:"Saturation Correct"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "saturationCorrect"
+            app.process()
+
+    Button
+        text:"Deletion Green Dominant"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "deletionGreenDominant"
+            app.process()
+
 <ViewMenu>:
+    CustomDropDown:
+        id: DropDown
+        show_hidden: True
+        size_hint:(0,0)
+
     StackLayout:
         orientation: "lr-tb"
         padding: 30
@@ -48,13 +102,17 @@
         Button:
             text: "File"
             on_release: app.root.manager.current = 'FileChooseView'
-            size_hint: (0.1, 0.04)
-        Button:
+            size_hint: (0.2, 0.1)
+
+        Button: #EditButton
             text: "Edit"
-            size_hint: (0.1, 0.04)
+            id: Edit
+            size_hint: (0.3, 0.1)
+            on_release: app.showProcess()
+
         Button:
             text: "Help"
-            size_hint: (0.1, 0.04)
+            size_hint: (0.2, 0.1)
 
 <ViewProcess>:
     BoxLayout:
@@ -131,7 +189,10 @@
                 app.processName = "MasterBias"
 
         Button:
-            text: "Short4"
+            text: "Registration"
+            on_release:
+                app.root.manager.current = 'PreProcessView'
+                app.processName = "Registration"
 
 
 
@@ -235,15 +296,16 @@
 
         ViewMenu:
             id: Menu
-            size_hint_y: 0.1
+            size_hint_y: 0.15
             #pos: 0,root.height-self.height
             canvas.before:
                 Color:
                     rgba: 0.4, 0.4, 0.4, 1
                 Rectangle:
                     # self here refers to the widget i.e BoxLayout
-                    pos: self.pos
+                    pos: (self.x,self.y+3*self.y/4.0)
                     size: self.size
+                    #size: (500,150)
                     #size_hint_y: 0.08
 
 
@@ -253,25 +315,17 @@
 
             ViewShortcut:
                 id: Shortcut
-                size_hint_x: 0.1
-                #pos: 0,root.height
+                size_hint_x: None
 
             ViewImage:
                 id: Image
-                #pos: Shortcut.width,0
-                #size_hint: ((root.width-float(Shortcut.width))/root.width-0.1,0.9)
-
-
-
 
 <RootWindow>
     manager: Manager
-    #do_default_tab: False
     canvas.before:
         Color:
             rgba: 0.2, 0.2, 0.2, 1
         Rectangle:
-            # self here refers to the widget i.e BoxLayout
             pos: self.pos
             size: self.size
 
@@ -295,11 +349,3 @@
             name: "FileChooseView"
             ViewFileChooser:
                 id: ViewFileChooser
-
-    #TabbedPanelHeader:
-    #    text: MainView.name
-    #    # store a screen name to link the tab to a screen
-    #    screen: MainView.name
-    #TabbedPanelHeader:
-    #    text: PreProcessView.name
-    #    screen: PreProcessView.name
