@@ -421,3 +421,166 @@ def registration(ndarray_ref, ndarray_list):
 	ndarray_ref,ndarray_list = alignment(ndarray_ref, ndarray_list)
 	ndarray_list.append(ndarray_ref)
 	return sigmaReject(ndarray_list)
+
+
+#---------- TESTS -------------#
+
+if __name__ == '__main__':
+
+	import imageio
+	from PIL import Image
+	from skimage import data
+
+	import sys
+	path1 = '../image/'
+	sys.path.append(path1)
+	from ImageRaw import ImageRaw
+
+# MasterDark :
+	path = '../../Pictures_test/darks/'
+	dark1 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2').getndarray()
+	dark3 = ImageRaw(path + 'D_0015_IC405_ISO800_300s__13C.CR2').getndarray()
+	dark4 = ImageRaw(path + 'D_0014_IC405_ISO800_300s__13C.CR2').getndarray()
+	dark5 = ImageRaw(path + 'D_0013_IC405_ISO800_300s__13C.CR2').getndarray()
+	dark7 = ImageRaw(path + 'D_0012_IC405_ISO800_300s__13C.CR2').getndarray()
+	dark8 = ImageRaw(path + 'D_0011_IC405_ISO800_300s__13C.CR2').getndarray()
+	dark9 = ImageRaw(path + 'D_0010_IC405_ISO800_300s__13C.CR2').getndarray()
+	dark11 = ImageRaw(path + 'D_0003_IC405_ISO800_300s__13C.CR2').getndarray()
+	result_dark = processMasterDark([dark1,dark3,dark4,dark5,dark7,dark8,dark9,dark11])
+	imageio.imsave('../../Pictures_test/testMasterDark.tiff', result_dark)
+	del dark1
+	del dark3
+	del dark4
+	del dark5
+	del dark7
+	del dark8
+	del dark9
+	del dark11
+	del result_dark
+
+# MasterFlat :
+	result_dark = data.imread('../../Pictures_test/testMasterDark.tiff')
+	path = '../../Pictures_test/flats/'
+	flat1 = ImageRaw(path + 'IMG_3090.CR2').getndarray()
+	flat2 = ImageRaw(path + 'IMG_3089.CR2').getndarray()
+	flat3 = ImageRaw(path + 'IMG_3088.CR2').getndarray()
+	flat4 = ImageRaw(path + 'IMG_3087.CR2').getndarray()
+	flat5 = ImageRaw(path + 'IMG_3086.CR2').getndarray()
+	flat6 = ImageRaw(path + 'IMG_3085.CR2').getndarray()
+	flat7 = ImageRaw(path + 'IMG_3084.CR2').getndarray()
+	flat8 = ImageRaw(path + 'IMG_3083.CR2').getndarray()
+	flat9 = ImageRaw(path + 'IMG_3082.CR2').getndarray()
+	flat10 = ImageRaw(path + 'IMG_3081.CR2').getndarray()
+	flat11 = ImageRaw(path + 'IMG_3079.CR2').getndarray()
+	flat12 = ImageRaw(path + 'IMG_3078.CR2').getndarray()
+	flat13 = ImageRaw(path + 'IMG_3077.CR2').getndarray()
+	flat14 = ImageRaw(path + 'IMG_3076.CR2').getndarray()
+	flat15 = ImageRaw(path + 'IMG_3075.CR2').getndarray()
+	flat16 = ImageRaw(path + 'IMG_3074.CR2').getndarray()
+	flat17 = ImageRaw(path + 'IMG_3073.CR2').getndarray()
+	flat18 = ImageRaw(path + 'IMG_3072.CR2').getndarray()
+	flat19 = ImageRaw(path + 'IMG_3071.CR2').getndarray()
+	flat20 = ImageRaw(path + 'IMG_3070.CR2').getndarray()
+	flat21 = ImageRaw(path + 'IMG_3069.CR2').getndarray()
+	flat22 = ImageRaw(path + 'IMG_3068.CR2').getndarray()
+	flat23 = ImageRaw(path + 'IMG_3067.CR2').getndarray()
+	flat24 = ImageRaw(path + 'IMG_3066.CR2').getndarray()
+	flat25 = ImageRaw(path + 'IMG_3065.CR2').getndarray()
+	flat26 = ImageRaw(path + 'IMG_3064.CR2').getndarray()
+	flat27 = ImageRaw(path + 'IMG_3063.CR2').getndarray()
+	flat28 = ImageRaw(path + 'IMG_3062.CR2').getndarray()
+	flat29 = ImageRaw(path + 'IMG_3061.CR2').getndarray()
+	flat30 = ImageRaw(path + 'IMG_3060.CR2').getndarray()
+	flat31 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
+	result_flat = processMasterFlat([flat1,flat2,flat3,flat4,flat5,flat6,flat7,flat8,flat9,flat10,flat11,flat12,flat13,flat14,flat15,flat16,flat17,flat18,flat19,flat20,flat21,flat22,flat23,flat24,flat25,flat26,flat27,flat28,flat29,flat30,flat31],result_dark)
+	imageio.imsave('../../Pictures_test/testMasterFlat.jpg', result_flat)
+	del flat1
+	del flat2
+	del flat3
+	del flat4
+	del flat5
+	del flat6
+	del flat7
+	del flat8
+	del flat9
+	del flat10
+	del flat11
+	del flat12
+	del flat13
+	del flat14
+	del flat15
+	del flat16
+	del flat17
+	del flat18
+	del flat19
+	del flat20
+	del flat21
+	del flat22
+	del flat23
+	del flat24
+	del flat25
+	del flat26
+	del flat27
+	del flat28
+	del flat29
+	del flat30
+	del flat31
+	del result_flat
+
+ Registration :
+	path = '../../Pictures_test/lights/'
+	img = ImageRaw(path + 'L_0022_IC405_ISO800_300s__15C.CR2').getndarray()
+	img2 = ImageRaw(path + 'L_0021_IC405_ISO800_300s__15C.CR2').getndarray()
+	img3 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+	img4 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+	img5 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+	img6 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+	img7 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+	img8 = ImageRaw(path + 'L_0014_IC405_ISO800_300s__15C.CR2').getndarray()
+
+	img9 = ImageRaw(path + 'L_0020_IC405_ISO800_300s__14C.CR2').getndarray()
+	img10 = ImageRaw(path + 'L_0019_IC405_ISO800_300s__14C.CR2').getndarray()
+	img11 = ImageRaw(path + 'L_0020_IC405_ISO800_300s__12C.CR2').getndarray()
+	img12 = ImageRaw(path + 'L_0015_IC405_ISO800_300s__12C.CR2').getndarray()
+	img13 = ImageRaw(path + 'L_0003_IC405_ISO800_300s__12C.CR2').getndarray()
+	img14 = ImageRaw(path + 'L_0001_IC405_ISO800_300s__12C.CR2').getndarray()
+
+	img15 = ImageRaw(path + 'L_0022_IC405_ISO800_300s__13C.CR2').getndarray()
+	img16 = ImageRaw(path + 'L_0021_IC405_ISO800_300s__13C.CR2').getndarray()
+	img17 = ImageRaw(path + 'L_0018_IC405_ISO800_300s__13C.CR2').getndarray()
+	img18 = ImageRaw(path + 'L_0016_IC405_ISO800_300s__13C.CR2').getndarray()
+	img19 = ImageRaw(path + 'L_0007_IC405_ISO800_300s__13C.CR2').getndarray()
+	img20 = ImageRaw(path + 'L_0004_IC405_ISO800_300s__13C.CR2').getndarray()
+	img21 = ImageRaw(path + 'L_0002_IC405_ISO800_300s__13C.CR2').getndarray()
+
+	img22 = ImageRaw(path + 'L_0019_IC405_ISO800_300s__10C.CR2').getndarray()
+	img23 = ImageRaw(path + 'L_0009_IC405_ISO800_300s__18C.CR2').getndarray()
+
+	result = processMasterFlat([img,img2,img3,img4,img5,img6,img7,img8,img9,img10,img11,img12,img13,img14,img15,img16,img17,img18,img19,img20,img21,img22,img23])
+	imageio.imsave('light_register.tiff', result)
+	del img
+	del img1
+	del img2
+	del img3
+	del img4
+	del img5
+	del img6
+	del img7
+	del img8
+	del img9
+	del img10
+	del img11
+	del img12
+	del img13
+	del img14
+	del img15
+	del img16
+	del img17
+	del img18
+	del img19
+	del img20
+	del img21
+	del img22
+	del img23
+
+#------------------------------#
