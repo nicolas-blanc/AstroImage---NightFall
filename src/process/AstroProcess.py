@@ -8,16 +8,16 @@ import Registration as reg
 import TreatmentProcess as tproc
 
 
-
-# INFO :
+# REFERENCES :
 # http://astro.dialou.fr/techniques/astrophotographie/capture-des-images-de-calibration/
 # http://www.astrosurf.com/d_bergeron/astronomie/Bibliotheque/Traitement%20image/Pretraitement%20des%20images/traitement%20image.htm#Images%20DARK
+
 
 
 # GENERAL METHODE ------------------------------------------------------------------------------------------------------------#
 
 
-# MEDIAN : the median combination allow to eliminates pixels deviants. It is the one that we shall usually use to combine Flat field (remove completely any tracks of artéfacts)
+# MEDIAN : the median combination allow to eliminates pixels deviants. It is the one that we shall usually use to combine Flat field or dark (remove completely any tracks of artéfacts)
 # so this combination eliminates space rays, tracks of satellites, travel of asteroids, etc.
 # but we obtain a MASTERDARK with a S/N of the order of 25 % a 30 %
 
@@ -25,7 +25,18 @@ def median(ndarray_list):
 	""" Create a median array from all array, i.e calcul the median for each pixel.
 		> More the number of ndarray is, more the median will be precise !
 		> All ndarray must have same dimensions !
+
+		Parameters :
+	     - ndarray_list : ndarray list of images.
+
+	     Return :
+	     - ndarray : ndarray in which each pixel match to pixels median
 	"""
+    # The ndarray need to have the same size
+	for i in range(1,len(ndarray_list)):
+	    if ndarray_list[0].shape != ndarray_list[i].shape:
+	        raise ValueError("Median Error : ndarray need to have the same size")
+
 	if len(ndarray_list) == 1:
     	# Shouldn't happen ...
 		return ndarray_list
@@ -55,7 +66,18 @@ def sigmaReject(ndarray_list):
 	""" Create a sigma reject array from all array, i.e calcul the sigma reject for each pixel.
 		> More the number of ndarray is, more the sigma reject will be precise !
 		> All ndarray must have same dimensions !
+
+		Parameters :
+	     - ndarray_list : ndarray list of images.
+
+	     Return :
+	     - ndarray : ndarray in which each pixel match to pixels sigmaReject
 	"""
+    # The ndarray need to have the same size
+	for i in range(1,len(ndarray_list)):
+	    if ndarray_list[0].shape != ndarray_list[i].shape:
+	        raise ValueError("SigmaReject Error : ndarray need to have the same size")
+
 	if len(ndarray_list) == 1:
     	# Shouldn't happen ...
 		return ndarray_list
@@ -97,7 +119,18 @@ def average(ndarray_list):
 	""" Create a average array from all array, i.e calcul the average for each pixel.
 		> More the number of ndarray is, more the average will be precise !
 		> All ndarray must have same dimensions !
+
+		Parameters :
+	     - ndarray_list : ndarray list of images.
+
+	     Return :
+	     - ndarray : ndarray in which each pixel match to pixels average
 	"""
+    # The ndarray need to have the same size
+	for i in range(1,len(ndarray_list)):
+	    if ndarray_list[0].shape != ndarray_list[i].shape:
+	        raise ValueError("Average Error : ndarray need to have the same size")
+
 	if len(ndarray_list) == 1:
     	# Shouldn't happen ...
 		return ndarray_list
@@ -125,9 +158,20 @@ def average(ndarray_list):
 # A pixel that has a value equal to the mean will be normalized to 1, while a pixel that has a value less than the mean will be normalized to less than 1, and pixels with values above the mean will be normalized to more than 1.
 # Any image-processing program that performs calibration takes care of this normalization automatically, but it’s important to understand the process, as we’ll see when we talk about how to get good flats.
 
-def normalize1(ndarray_list):
+def normalize(ndarray_list):
     """ Normalize each ndarray and scale all
-    """
+		> All ndarray must have same dimensions !
+
+		Parameters :
+	     - ndarray_list : ndarray list of images.
+
+	     Return :
+	     - ndarray : ndarray in which each pixel match to pixels normalize
+	"""
+    # The ndarray need to have the same size
+	for i in range(1,len(ndarray_list)):
+	    if ndarray_list[0].shape != ndarray_list[i].shape:
+	        raise ValueError("Registration Error : ndarray need to have the same size")
     t = list(ndarray_list)
     liste = []
     lenght = len(t)
@@ -148,18 +192,6 @@ def normalize1(ndarray_list):
     return t
 
 
-def normalize(ndarray_list):
-	lenght = len(ndarray_list)
-	flatsAvg = np.zeros_like(ndarray_list[0])
-	for frame in range(lenght):
-		print "Normalize 1/2 : " + str(frame+1) + "/" + str(lenght)
-		flatsAvg = np.add(flatsAvg,ndarray_list[frame])
-	mean = np.mean(flatsAvg)
-	for frame in range(lenght):
-		print "Normalize 2/2 : " + str(frame+1) + "/" + str(lenght)
-		ndarray_list[frame] = np.divide(ndarray_list[frame],mean)
-	return ndarray_list
-
 
 
 # MASTER DARK ---------------------------------------------------------------------------------------------------------------#
@@ -168,14 +200,26 @@ def normalize(ndarray_list):
 
 def processMasterDark(ndarray_list) :
 	""" The MASTERDARK image will serve to remove the thermal noise and random noise on our LIGHT image
-		> without MASTERBIAS
+
+	Parameters :
+	 - ndarray_list : ndarray list of darks.
+
+	 Return :
+	 - ndarray : MasterDark ndarray
 	"""
 	# 1) Create a sigma reject array from all of them, entry-by-entry.
 	return sigmaReject(ndarray_list)
 
+
 def processMasterDarkWithBias(ndarray_list, ndarray_masterBias) :
 	""" The MASTERDARK image will serve to remove the thermal noise and random noise on our LIGHT image
-		> with MASTERBIAS
+
+	Parameters :
+	 - ndarray_list : ndarray list of darks.
+	 - ndarray_masterBias : MasterBias ndarray
+
+	 Return :
+	 - ndarray : MasterDark ndarray
 	"""
 	# 1) Subtract the master bias frame
 	darks = list(ndarray_list)
@@ -189,6 +233,13 @@ def processMasterDarkWithBias(ndarray_list, ndarray_masterBias) :
 
 def processMasterDarkFlat(ndarray_list, ndarray_masterBias) :
 	""" The MASTER DARK FLAT image will serve to calcul the MASTER FLAT FIELD WITH BIAS
+
+	Parameters :
+	 - ndarray_list : ndarray list of flats.
+	 - ndarray_masterBias : MasterBias ndarray
+
+	 Return :
+	 - ndarray : MasterDarkFlat ndarray
 	"""
 	# 1) Subtract the master bias frame
 	darkflats = list(ndarray_list)
@@ -206,12 +257,18 @@ def processMasterDarkFlat(ndarray_list, ndarray_masterBias) :
 
 def processMasterFlat(ndarray_list, ndarray_masterDark) :
 	""" The MASTERFLAT image will serve to remove all track of dusts, gradient, vignetting on our LIGHT image
-		> Without MASTERBIAS
+
+	Parameters :
+	 - ndarray_list : ndarray list of flats.
+	 - ndarray_masterDark : MasterDark ndarray
+
+	 Return :
+	 - ndarray : Masterflat ndarray
 	"""
 	# 1) Subtract the master dark frame
 	lenght = len(ndarray_list)
 	h,l,r = ndarray_list[0].shape
-	vmin,vmax = limitValues(ndarray_list[0])
+	vmin,vmax = tproc.limitValues(ndarray_list[0])
 	for frame in range(lenght):
 		print "Substract Dark to Flats : " + str(frame+1) + "/" + str(lenght)
 		ndarray_list[frame] = np.subtract(ndarray_list[frame],ndarray_masterDark)
@@ -224,23 +281,17 @@ def processMasterFlat(ndarray_list, ndarray_masterDark) :
 	# 3) Create a median array from all of them, entry-by-entry.
 	return median(normalize(ndarray_list))
 
-def processMasterFlat1(ndarray_list, ndarray_masterDark):
-	""" The MASTERFLAT image will serve to remove all track of dusts, gradient, vignetting on our LIGHT image
-		> Without MASTERBIAS
-	"""
-	lenght = len(ndarray_list)
-	h,l,r = ndarray_list[0].shape
-	flatsAvg = np.zeros_like(ndarray_list[0])
-	flats = np.zeros_like(ndarray_list[0])
-	for frame in range(lenght):
-		print "ProcessMasterFlat : " + str(frame+1) + "/" + str(lenght)
-		flats = np.subtract(ndarray_list[frame],ndarray_masterDark)
-		flatsAvg = np.add(flatsAvg,flats)
-	return np.divide(flatsAvg,np.mean(flatsAvg))
 
 def processMasterFlatWithBias(ndarray_list, ndarray_masterDarkFlat, ndarray_masterBias) :
 	""" The MASTERFLAT image will serve to remove all track of dusts, gradient, vignetting on our LIGHT image
-		> With MASTERBIAS & MasterDarkFlat
+
+	Parameters :
+	 - ndarray_list : ndarray list of flats.
+	 - ndarray_masterBias : MasterBias ndarray
+	 - ndarray_masterDarkFlat : MasterDarkFlat ndarray
+
+	 Return :
+	 - ndarray : MasterFlat ndarray
 	"""
 	# 1) Subtract the MasterBias and the MasterDarkFlat
 	flats = list(ndarray_list)
@@ -262,6 +313,12 @@ def processMasterFlatWithBias(ndarray_list, ndarray_masterDarkFlat, ndarray_mast
 def processMasterBias(ndarray_list) :
 	""" The MASTERBIAS image will serve to remove the initial exposure level of pixels in our LIGHT
 		> If you take your series of images DARK with same parameters (the same exposure time, same binning, same temperature) as the LIGHT images and for your images of FLAT FIELD, you will not need to set of images of BIAS.
+
+		Parameters :
+		 - ndarray_list : ndarray list of bias
+
+		 Return :
+		 - ndarray : MasterBias ndarray
 	"""
 	# 1) Create an average array from all of them, entry-by-entry.
 	return average(ndarray_list)
@@ -273,7 +330,14 @@ def processMasterBias(ndarray_list) :
 
 def calibration(ndarray_list, ndarray_masterDark, ndarray_masterFlat):
 	""" The final result will be a perfectly corrected LIGHT image
-		> without BIAS
+
+	Parameters :
+	 - ndarray_list : ndarray list of lights.
+	 - ndarray_masterDark : MasterDark ndarray
+	 - ndarray_masterFlat : MasterFlat ndarray
+
+	 Return :
+	 - ndarray : ndarray list of lights calibrated.
 	"""
 	lights_list = list(ndarray_list)
 	length = len(lights_list)
@@ -286,7 +350,15 @@ def calibration(ndarray_list, ndarray_masterDark, ndarray_masterFlat):
 
 def calibrationWithBias(ndarray_list, ndarray_masterDark, ndarray_masterFlat, ndarray_masterBias):
 	""" The final result will be a perfectly corrected LIGHT image
-		> with BIAS
+
+	Parameters :
+	 - ndarray_list : ndarray list of lights.
+	 - ndarray_masterDark : MasterDark ndarray
+	 - ndarray_masterFlat : MasterFlat ndarray
+	 - ndarray_masterBias : MasterBias ndarray
+
+	 Return :
+	 - ndarray : ndarray list of lights calibrated.
 	"""
 	lights_list = list(ndarray_list)
 	length = len(lights_list)
@@ -299,17 +371,26 @@ def calibrationWithBias(ndarray_list, ndarray_masterDark, ndarray_masterFlat, nd
 
 
 def alignment(ndarray_ref, ndarray_list):
+	""" To align the LIGHT image according to a references image
+
+	Parameters :
+	 - ndarray_ref : ndarray of the light reference.
+	 - ndarray_list : ndarray list of the lights which must be aligned
+
+	 Return :
+	 - ndarray_list : ndarray list of all the aligned lights.
+	"""
 	lenght = len(ndarray_list)
 	h,l,r = ndarray_ref.shape
 
 	for nb in range(lenght) :
-		# Le résultat est toujours calculé à partir de l'image référence
+		# The result is always calculated from the ref image
 		result = np.copy(ndarray_ref)
-		# Calcul de facteur de décalage
+		# Calcul the shift factor
 		shift = reg.shift_translation(ndarray_ref,ndarray_list[nb])
 		decalx = int(shift[0])
 		decaly = int(shift[1])
-		# On applique le facteur de décalage, selon le signe de ce décalage
+		# Apply the shift factor, according to its sign
 		if decalx>=0 and decaly>=0 :
 			for i in range(decalx,h):
 				for j in range(decaly,l):
@@ -326,16 +407,23 @@ def alignment(ndarray_ref, ndarray_list):
 		    for i in range(0-decalx,h):
 		        for j in range(decaly,l):
 		            result[i+decalx][j]=img2[i][j-decaly]
-		# On applique les changements sur l'image de départ
+		# Apply the changes to the image
 		ndarray_list[nb] = result
-	# On retourne la liste des toutes les images (dont l'image de référence)
 	return (ndarray_ref,ndarray_list)
 
 def registration(ndarray_ref, ndarray_list):
-	""" To overlap LIGHT image (after the calibration) """
+	""" To overlap LIGHT image (after the calibration)
+
+	Parameters :
+	 - ndarray_ref : ndarray of the light reference.
+	 - ndarray_list : ndarray list of the lights which must be aligned
+
+	 Return :
+	 - ndarray_list : ndarray list of all the registred lights.
+	 """
 	ndarray_ref,ndarray_list = alignment(ndarray_ref, ndarray_list)
 	ndarray_list.append(ndarray_ref)
-	sigmaReject(ndarray_list)
+	return sigmaReject(ndarray_list)
 
 
 
@@ -377,32 +465,32 @@ if __name__ == '__main__':
 #	del dark11
 
 # MasterFlat :
-	result_dark = data.imread('../../Pictures_test/testMasterDark.tiff')
-	path = '../../Pictures_test/flats/'
-	flat1 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
-	flat2 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
-	flat3 = ImageRaw(path + 'IMG_3060.CR2').getndarray()
-	flat4 = ImageRaw(path + 'IMG_3061.CR2').getndarray()
-	flat5 = ImageRaw(path + 'IMG_3062.CR2').getndarray()
-	flat6 = ImageRaw(path + 'IMG_3063.CR2').getndarray()
-	flat7 = ImageRaw(path + 'IMG_3064.CR2').getndarray()
-	flat8 = ImageRaw(path + 'IMG_3065.CR2').getndarray()
-	flat9 = ImageRaw(path + 'IMG_3066.CR2').getndarray()
-	flat10 = ImageRaw(path + 'IMG_3067.CR2').getndarray()
-	flat11 = ImageRaw(path + 'IMG_3068.CR2').getndarray()
-	result_flat = processMasterFlat([flat1,flat2,flat3,flat4,flat5,flat6,flat7,flat8,flat9,flat10,flat11],result_dark)
-	imageio.imsave('../../Pictures_test/testMasterFlat.jpg', result_flat)
-	del flat1
-	del flat2
-	del flat3
-	del flat4
-	del flat5
-	del flat6
-	del flat7
-	del flat8
-	del flat9
-	del flat10
-	del flat11
+#	result_dark = data.imread('../../Pictures_test/testMasterDark.tiff')
+#	path = '../../Pictures_test/flats/'
+#	flat1 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
+#	flat2 = ImageRaw(path + 'IMG_3059.CR2').getndarray()
+#	flat3 = ImageRaw(path + 'IMG_3060.CR2').getndarray()
+#	flat4 = ImageRaw(path + 'IMG_3061.CR2').getndarray()
+#	flat5 = ImageRaw(path + 'IMG_3062.CR2').getndarray()
+#	flat6 = ImageRaw(path + 'IMG_3063.CR2').getndarray()
+#	flat7 = ImageRaw(path + 'IMG_3064.CR2').getndarray()
+#	flat8 = ImageRaw(path + 'IMG_3065.CR2').getndarray()
+#	flat9 = ImageRaw(path + 'IMG_3066.CR2').getndarray()
+#	flat10 = ImageRaw(path + 'IMG_3067.CR2').getndarray()
+#	flat11 = ImageRaw(path + 'IMG_3068.CR2').getndarray()
+#	result_flat = processMasterFlat([flat1,flat2,flat3,flat4,flat5,flat6,flat7,flat8,flat9,flat10,flat11],result_dark)
+#	imageio.imsave('../../Pictures_test/testMasterFlat.jpg', result_flat)
+#	del flat1
+#	del flat2
+#	del flat3
+#	del flat4
+#	del flat5
+#	del flat6
+#	del flat7
+#	del flat8
+#	del flat9
+#	del flat10
+#	del flat11
 
 
 # Alignement :
