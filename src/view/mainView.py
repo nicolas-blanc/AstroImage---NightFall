@@ -9,6 +9,7 @@ from kivy.clock import Clock
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.stacklayout import StackLayout
 from kivy.lang import Builder
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.adapters.listadapter import ListAdapter
@@ -20,16 +21,18 @@ from kivy.graphics.texture import Texture
 from kivy.uix.image import Image
 from kivy.uix.filechooser import FileSystemLocal
 from kivy.uix.dropdown import DropDown
+from kivy.uix.button import Button
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
 from skimage import data, io
 
+import threading
 import skimage
 import io as iolib
 import os.path
-import AstroProcess
-import ImageRaw
-import imageio
+import sys
 import re
-import ImageFitsColor
+import imageio
 
 Builder.load_file('ViewWindow.kv')
 
@@ -43,11 +46,21 @@ class CustomDropDown(DropDown):
     pass
 
 class ViewMenu(BoxLayout):
-    def __init__(self, *args, **kwargs):
-        super(BoxLayout, self).__init__(*args, **kwargs)
-        Clock.schedule_interval(self.update, 1./60)
-        self.refs = [self.EditButton.__self__]
-    #pass
+    #editButton = ObjectProperty(None)
+    #stack = ObjectProperty(None)
+    #def __init__(self, *args, **kwargs):
+    #    super(BoxLayout, self).__init__(*args, **kwargs)
+    #    #Clock.schedule_interval(self.update, 1./60)
+    #    self.editButton = Button(text="Edit",size_hint=(0.3,0.1),id="editButton")
+    #    self.editButton.bind(on_release=self.showProcess)
+    #    print self.Stack
+    #    self.ids.Stack.add_widget(self.editButton)
+    #    self.refs = [self.editButton.__self__]
+    pass
+
+    #def showProcess(self):
+    #    self.ids["DropDown"].open(self.editButton)
+
 
 class ViewProcess(BoxLayout):
     pass
@@ -131,13 +144,15 @@ class mainApp(App):
     source = StringProperty(None)
     processName = StringProperty(None)
     result = ObjectProperty(None)
+    threadProcess = ObjectProperty(None)
+    popup = ObjectProperty(None)
     def build(self):
         self.source = "./backgroundDefault.jpg"
         self.pictureList = []
         self.texture = Texture.create()
         self.texture.wrap="clamp_to_edge"
+        self.customDropDown = CustomDropDown()
         root = RootWindow()
-        self.widget = root.ids["ViewWindow"].ids["Menu"].ids["Edit"]
         return root
 
     def update_list_data(self, path, filename):
@@ -158,7 +173,7 @@ class mainApp(App):
                     h,l,r = image.shape
                     self.texture = Texture.create(size=(l,h))
                     self.texture.blit_buffer(pbuffer = image.tostring(),bufferfmt="ushort",colorfmt='rgb')
-                elif re.search('[.jpg|.png|.gif]',defPath):
+                elif re.search('[.jpg|.png|.gif|.tiff]',defPath):
                     image = io.imread(defPath)
                     self.pictureList.append(DataImage(path=filename[0],image=image))
                     h,l,r = image.shape
@@ -214,6 +229,31 @@ class mainApp(App):
                         self.pictureList.remove(i)
             self.root.ids["ViewPreProcess"].ids["SelectionList"].remove(select[0].text)
 
+    def startProcess(self):
+        self.threadProcess = threading.Thread(target=self.process, args=())
+        self.threadProcess.start()
+        self.popup = Popup(title='Render State', content=Label(text='Render in progress. It may take more than a minute'),
+              auto_dismiss=False)
+        self.popup.open()
+        self.count = 0
+        Clock.schedule_interval(self.updatePopup, 0.5)
+
+    def updatePopup(self,dt):
+        if self.threadProcess.isAlive():
+            if self.count == 0:
+                self.popup.content = Label(text='Render in progress. It may take more than a minute.')
+            if self.count == 1:
+                self.popup.content = Label(text='Render in progress. It may take more than a minute..')
+            if self.count == 2:
+                self.popup.content = Label(text='Render in progress. It may take more than a minute...')
+            self.count = self.count+1
+            if self.count == 3 :
+                self.count = 0
+        else:
+            self.popup.dismiss()
+            Clock.unschedule(self.updatePopup)
+
+
     def process(self):
         if len(self.pictureList) > 1:
             dataList = []
@@ -247,22 +287,30 @@ class mainApp(App):
             self.clear()
         elif len(self.pictureList) == 1:
             if self.processName is "medianFilter":
+                print "medianFilter"
                 self.result = TreatmentProcess.medianFilter(self.pictureList[0].image)
+                print self.result
             elif self.processName is "logCorrect":
+                print "logCorrect"
                 self.result = TreatmentProcess.logCorrect(self.pictureList[0].image)
             elif self.processName is "gammaCorrect":
+                print "gammaCorrect"
                 self.result = TreatmentProcess.gammaCorrect(self.pictureList[0].image)
             elif self.processName is "luminosityCorrect":
+                print "luminosityCorrect"
                 self.result = TreatmentProcess.luminosityCorrect(self.pictureList[0].image)
             elif self.processName is "saturationCorrect":
+                print "saturationCorrect"
                 self.result = TreatmentProcess.saturationCorrect(self.pictureList[0].image)
             elif self.processName is "deletionGreenDominant":
+                print "deletionGreenDominant"
                 self.result = TreatmentProcess.deletionGreenDominant(self.pictureList[0].image)
 
             self.root.manager.current = 'MainView'
+
             h,l,r = self.result.shape
             self.texture = Texture.create(size=(l,h))
-            self.texture.blit_buffer(pbuffer = self.result.tostring(),bufferfmt="ushort",colorfmt='rgb')
+            self.texture.blit_buffer(pbuffer = self.result.tostring(),bufferfmt="ubyte",colorfmt='rgb')
             self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].texture = self.texture
             self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].reload()
 
@@ -278,6 +326,9 @@ class mainApp(App):
             selection = self.root.ids["ViewFileChooser"].ids["Explorer"].ids["icon_view_tab"].selection
         if selection:
             self.root.manager.current = 'MainView'
+            di = self.pictureList[len(self.pictureList)-1]
+            self.pictureList = []
+            self.pictureList.append(di)
 
             self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].texture = self.texture
             self.root.ids["ViewWindow"].ids["Image"].ids["currentImage"].reload()
@@ -299,7 +350,24 @@ class mainApp(App):
                 self.update_list_data(path,filename)
 
     def showProcess(self):
-        self.root.ids["ViewWindow"].ids["Menu"].ids["DropDown"].open(self.widget)
+        self.customDropDown.open(self.root.ids["ViewWindow"].ids["Menu"].ids["editbutton"])
+
+    def saveFile(self):
+        if not self.result == None:
+            imageio.imsave('../../Pictures_test/'+'render.tiff', self.result)
+            print "Save !"
 
 if __name__ == '__main__':
+
+    path1 = '../image/'
+    sys.path.append(path1)
+    import ImageRaw
+    import ImageFitsColor
+
+    path1 = '../process/'
+    sys.path.append(path1)
+    import AstroProcess
+    import TreatmentProcess
+
+
     mainApp().run()
