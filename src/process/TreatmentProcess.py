@@ -46,15 +46,15 @@ def rgb2gray(rgbArray):
 	""" Convert a rgb image into a gray image
 
 	Parameters :
-	 - ndarray rgb
+	- ndarray rgb
 
 	returns :
-	 - ndarray gray
-	 """
-    r, g, b = rgbArray[:,:,0], rgbArray[:,:,1], rgbArray[:,:,2]
-    gray = rgbArray.dtype.type(0.2989 * r + 0.5870 * g + 0.1140 * b)
-    print(gray)
-    return gray
+	- ndarray gray
+	"""
+	r, g, b = rgbArray[:,:,0], rgbArray[:,:,1], rgbArray[:,:,2]
+	gray = rgbArray.dtype.type(0.2989 * r + 0.5870 * g + 0.1140 * b)
+	print(gray)
+	return gray
 
 
 def rgb_to_hls(ndarray):

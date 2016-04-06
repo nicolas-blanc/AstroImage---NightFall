@@ -158,15 +158,18 @@ def average(ndarray_list):
 # A pixel that has a value equal to the mean will be normalized to 1, while a pixel that has a value less than the mean will be normalized to less than 1, and pixels with values above the mean will be normalized to more than 1.
 # Any image-processing program that performs calibration takes care of this normalization automatically, but it’s important to understand the process, as we’ll see when we talk about how to get good flats.
 
+
 def normalize(ndarray_list):
-    """ Normalize each ndarray and scale all
-		> All ndarray must have same dimensions !
+	""" Normalize each ndarray and scale all
+	> All ndarray must have same dimensions!
 
-		Parameters :
-	     - ndarray_list : ndarray list of images.
+	Parameters :
+	- ndarray_list : ndarray list of images
 
-	     Return :
-	     - ndarray : ndarray in which each pixel match to pixels normalize
+
+	Returns :
+	- ndarray : ndarray in wich each pixel match to pixels normalize
+
 	"""
 	liste = []
 	lenght = len(ndarray_list)
