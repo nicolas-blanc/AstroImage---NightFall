@@ -4,11 +4,9 @@
 #:import SwapTransition kivy.uix.screenmanager.SwapTransition
 
 <ViewExplorer>:
-    #width: 300
     size_hint_x: 0.5
     BoxLayout:
-        #width: 300
-        #size_hint: (None,1)
+
         TabbedPanel:
             tab_pos: "top_right"
             default_tab_text: "List View"
@@ -38,23 +36,83 @@
             id: currentImage
             source: ""
             texture: app.texture
+            keep_ratio: True
+            allow_stretch: True
+
+<CustomDropDown>:
+    Button:
+        text:"Median Filter"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "medianFilter"
+            app.process()
+
+    Button:
+        text:"Log Correct"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "logCorrect"
+            app.process()
+
+    Button:
+        text:"Gamma Correct"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "gammaCorrect"
+            app.process()
+
+    Button:
+        text:"Luminosity Correct"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "luminosityCorrect"
+            app.process()
+
+    Button:
+        text:"Saturation Correct"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "saturationCorrect"
+            app.process()
+
+    Button
+        text:"Deletion Green Dominant"
+        size_hint_y: None
+        height: 44
+        on_release:
+            app.processName = "deletionGreenDominant"
+            app.process()
 
 <ViewMenu>:
+    CustomDropDown:
+        id: DropDown
+        show_hidden: True
+        size_hint:(0,0)
+
     StackLayout:
         orientation: "lr-tb"
-        padding: 20
+        padding: 30
         spacing: 10
 
         Button:
             text: "File"
-            size_hint: (0.1, 0.04)
-            on_release: app.root.manager.current = 'PreProcessView'
-        Button:
+            on_release: app.root.manager.current = 'FileChooseView'
+            size_hint: (0.2, 0.1)
+
+        Button: #EditButton
             text: "Edit"
-            size_hint: (0.1, 0.04)
+            id: Edit
+            size_hint: (0.3, 0.1)
+            on_release: app.showProcess()
+
         Button:
             text: "Help"
-            size_hint: (0.1, 0.04)
+            size_hint: (0.2, 0.1)
 
 <ViewProcess>:
     BoxLayout:
@@ -103,43 +161,64 @@
             max: 100
 
 <ViewShortcut>:
-    width: 50
-    size_hint_x: 0.1
+    #width: 50
+    #size_hint_x: 0.1
 
     GridLayout:
         cols: 1
-        # width: 60
+        #rows: 1
 
-        padding: 5
-        spacing: 2
+        padding: 10
+        spacing: 5
         Button:
-            text: "Short1"
-            # background_normal: "" -> ajout de l'adresse pour une image
+            text: "MasterDark"
+            on_release:
+                app.root.manager.current = 'PreProcessView'
+                app.processName = "MasterDark"
+
         Button:
-            text: "Short2"
+            text: "MasterFlat"
+            on_release:
+                app.root.manager.current = 'PreProcessView'
+                app.processName = "MasterFlat"
+
         Button:
-            text: "Short3"
+            text: "MasterBias"
+            on_release:
+                app.root.manager.current = 'PreProcessView'
+                app.processName = "MasterBias"
+
         Button:
-            text: "Short4"
+            text: "Registration"
+            on_release:
+                app.root.manager.current = 'PreProcessView'
+                app.processName = "Registration"
+
 
 
 <ViewSelectionList>:
-    #width: 100
-    #size_hint_x: 0.01
     size_hint_x: 0.5
     BoxLayout:
         orientation: "vertical"
 
         Button:
-            text: "Delete"
+            text: "Find CR2"
             size_hint_x: 1
             size_hint_y: 0.1
-            pos_hint: {'right': 1}
-            on_release: root.remove()
+            pos_hint: {'left': 1}
+            on_release:
+                app.findFile()
 
         ListView:
             id: List
             adapter: root.list_adapter
+                #on_selection_change= app.preview()
+                #selection= app.preview()
+
+
+            on_touch_up:
+                app.preview()
+
         BoxLayout:
             orientation: "horizontal"
 
@@ -152,13 +231,45 @@
                     app.clear()
                     app.root.manager.current = 'MainView'
 
+            Button:
+                text: "Delete"
+                size_hint_x: 1
+                size_hint_y: 0.1
+                pos_hint: {'right': 1}
+                on_release:
+                    app.remove()
 
             Button:
                 text: "Confirm"
                 size_hint_x: 1
                 size_hint_y: 0.1
-                on_release: app.masterDark()
+                on_release: app.process()
 
+
+<ViewFileChooser>:
+    BoxLayout:
+        orientation: 'vertical'
+
+        ViewExplorer
+            id: Explorer
+            size_hint_x:1
+            #size_hint_y:1
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.5
+            Button:
+                text: "Return"
+                size_hint_x: 1
+                size_hint_y: 0.1
+                on_release:
+                    app.root.manager.current = 'MainView'
+
+            Button:
+                text: "Confirm"
+                size_hint_x: 1
+                size_hint_y: 0.1
+                on_release: app.loadFile()
 
 <ViewPreProcess>:
     BoxLayout:
@@ -177,36 +288,47 @@
             #poq: SelectionList.x+SelectionList.width,root.height-self.height
 
 <ViewWindow>:
-    FloatLayout:
-        BoxLayout:
-            orientation: 'horizontal'
-            pos: 0,root.height-self.height
-            size_hint_y: 0.08
-            canvas.before:
-                Color:
-                    rgba: 0.6, 0.6, 0.6, 1
-                Rectangle:
-                    # self here refers to the widget i.e BoxLayout
-                    pos: self.pos
-                    size: self.size
+    BoxLayout:
+        orientation: 'vertical'
+
+        #pos: 0,root.height-self.height
+
 
         ViewMenu:
             id: Menu
-            pos: 0,root.height-self.height
+            size_hint_y: 0.15
+            #pos: 0,root.height-self.height
+            canvas.before:
+                Color:
+                    rgba: 0.4, 0.4, 0.4, 1
+                Rectangle:
+                    # self here refers to the widget i.e BoxLayout
+                    pos: (self.x,self.y+3*self.y/4.0)
+                    size: self.size
+                    #size: (500,150)
+                    #size_hint_y: 0.08
 
-    ViewImage:
-        id: Image
-        pos: Shortcut.width,0
-        size_hint: ((root.width-float(Shortcut.width))/root.width-0.1,0.9)
 
 
-    ViewShortcut:
-        id: Shortcut
-        pos: 0,root.height
+        BoxLayout:
+            orientation: 'horizontal'
+
+            ViewShortcut:
+                id: Shortcut
+                size_hint_x: None
+
+            ViewImage:
+                id: Image
 
 <RootWindow>
     manager: Manager
-    do_default_tab: False
+    canvas.before:
+        Color:
+            rgba: 0.2, 0.2, 0.2, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     ScreenManager:
         id: Manager
         transition: SwapTransition()
@@ -222,10 +344,8 @@
             ViewPreProcess:
                 id: ViewPreProcess
 
-    TabbedPanelHeader:
-        text: MainView.name
-        # store a screen name to link the tab to a screen
-        screen: MainView.name
-    TabbedPanelHeader:
-        text: PreProcessView.name
-        screen: PreProcessView.name
+        Screen:
+            id: FileChooseView
+            name: "FileChooseView"
+            ViewFileChooser:
+                id: ViewFileChooser

@@ -35,7 +35,7 @@ class ImageFitsColor(Image):
         ##print('DATATYPE')
         ##print(self._dataType)
         rgbArray = np.empty(shape=(height,width,3),dtype=self._dataType)
-        rgbArray[:,:,0] = dataRed 
+        rgbArray[:,:,0] = dataRed
         rgbArray[:,:,1] = dataGreen
         rgbArray[:,:,2] = dataBlue
         ##print('ConvertFIFTS')
@@ -52,17 +52,3 @@ class ImageFitsColor(Image):
     def getDataType(self):
         """ Return data type of ImageFitsColor """
         return self._file
-
-
-
-
-#---------- TESTS -------------#
-
-if __name__ == '__main__':
-    import imageio
-    path = '../../Pictures_test/'
-    fits = ImageFitsColor(path+'test_red.fits',path+'test_green.fits',path+'test_blue.fits')
-    imageio.imsave('../../Pictures_test/testImageFITS.tiff', fits.getndarray())
-
-#------------------------------#
-

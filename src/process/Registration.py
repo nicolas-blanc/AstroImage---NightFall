@@ -17,7 +17,7 @@ def shift_translation(src_image, target_image):
     """
     # The two images need to have the same size
     if src_image.shape != target_image.shape:
-        raise ValueError("Registration Error : The images need to have the same size")
+        raise ValueError("Registration Error : Images need to have the same size")
 
     # In order to calcul the FFT(Fast Fourier Transform), we need convert the data type into real data
     src_image = np.array(src_image, dtype=np.complex128, copy=False)

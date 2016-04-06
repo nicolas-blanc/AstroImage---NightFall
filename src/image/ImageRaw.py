@@ -24,18 +24,3 @@ class ImageRaw(Image):
     def getFile(self):
     	""" Return the file of ImageRaw"""
         return self._file
-
-
-
-
-#---------- TESTS -------------#
-
-if __name__ == '__main__':
-	import imageio
-	path = '../../Pictures_test/'
-	picture = ImageRaw(path + 'DSC_0599.NEF')
-	print(picture.getSize())
-	imageio.imsave('../../Pictures_test/testImageRAW.tiff', picture.getndarray())
-	picture.saveToFits(path,'test')
-
-#------------------------------#
