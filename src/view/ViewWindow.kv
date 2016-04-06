@@ -2,6 +2,7 @@
 #:import label kivy.uix.label
 #:import sla kivy.adapters.simplelistadapter
 #:import SwapTransition kivy.uix.screenmanager.SwapTransition
+#:import StackLayout kivy.uix.stacklayout
 
 <ViewExplorer>:
     size_hint_x: 0.5
@@ -46,7 +47,7 @@
         height: 44
         on_release:
             app.processName = "medianFilter"
-            app.process()
+            app.startProcess()
 
     Button:
         text:"Log Correct"
@@ -54,7 +55,7 @@
         height: 44
         on_release:
             app.processName = "logCorrect"
-            app.process()
+            app.startProcess()
 
     Button:
         text:"Gamma Correct"
@@ -62,7 +63,7 @@
         height: 44
         on_release:
             app.processName = "gammaCorrect"
-            app.process()
+            app.startProcess()
 
     Button:
         text:"Luminosity Correct"
@@ -70,7 +71,7 @@
         height: 44
         on_release:
             app.processName = "luminosityCorrect"
-            app.process()
+            app.startProcess()
 
     Button:
         text:"Saturation Correct"
@@ -78,7 +79,7 @@
         height: 44
         on_release:
             app.processName = "saturationCorrect"
-            app.process()
+            app.startProcess()
 
     Button
         text:"Deletion Green Dominant"
@@ -86,14 +87,10 @@
         height: 44
         on_release:
             app.processName = "deletionGreenDominant"
-            app.process()
+            app.startProcess()
 
 <ViewMenu>:
-    CustomDropDown:
-        id: DropDown
-        show_hidden: True
-        size_hint:(0,0)
-
+    editbutton: editbutton.__self__
     StackLayout:
         orientation: "lr-tb"
         padding: 30
@@ -101,18 +98,21 @@
 
         Button:
             text: "File"
-            on_release: app.root.manager.current = 'FileChooseView'
+            on_release:
+                app.root.manager.current = 'FileChooseView'
+                app.pictureList = []
             size_hint: (0.2, 0.1)
 
         Button: #EditButton
+            id: editbutton
             text: "Edit"
-            id: Edit
             size_hint: (0.3, 0.1)
             on_release: app.showProcess()
 
         Button:
-            text: "Help"
-            size_hint: (0.2, 0.1)
+            text: "Save"
+            size_hint: (0.3, 0.1)
+            on_release: app.saveFile()
 
 <ViewProcess>:
     BoxLayout:
